@@ -1,5 +1,5 @@
 namespace EventProject.Controllers.Events.Dto;
 
-public class EventForCreatioDto
+public class EventForCreationDto
 {
 }

@@ -1,3 +1,4 @@
+using System.Net;
 using EventProject.Controllers.Events.Dto;
 using EventProject.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ public class EventsController(IEventService eventService): ControllerBase
     }
     // POST /events — создать событие, возвращать корректный HTTP-ответ (например, 201);
     [HttpPost]
-    public IActionResult CreateEvent(EventForCreatioDto eventDto)
+    public IActionResult CreateEvent(EventForCreationDto eventDto)
     {
         return Ok();
     }
@@ -39,3 +40,4 @@ public class EventsController(IEventService eventService): ControllerBase
         return Ok();
     }
 }
+
