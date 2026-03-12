@@ -3,5 +3,5 @@
     <File Path=".gitignore" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="EventService/EventService.csproj" />
+  <Project Path="EventProject/EventProject.csproj" />
 </Solution>

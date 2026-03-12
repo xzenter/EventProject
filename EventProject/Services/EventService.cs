@@ -1,4 +1,4 @@
-namespace EventService.Services;
+namespace EventProject.Services;
 
 public class EventService : IEventService
 {
