@@ -1,10 +1,14 @@
-namespace EventProject.Models;
+namespace EventProject.Controllers.Events.Dto;
 
-public class Event
+public class EventDto
 {
     public required Guid Id { get; set; }
+
     public required string Title { get; set; }
+
     public string? Description { get; set; }
+
     public required DateTime StartAt { get; set; }
+
     public required DateTime EndAt { get; set; }
 }
