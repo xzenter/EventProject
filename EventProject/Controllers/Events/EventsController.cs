@@ -1,4 +1,3 @@
-using System.Net;
 using EventProject.Controllers.Events.Dto;
 using EventProject.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -6,38 +5,93 @@ using Microsoft.AspNetCore.Mvc;
 namespace EventProject.Controllers.Events;
 
 [ApiController]
-[Route("api/events")]
-public class EventsController(IEventService eventService): ControllerBase
+[Route("events")]
+public class EventsController(IEventService eventService) : ControllerBase
 {
-    // GET /events — получить список всех событий;
+    /// <summary>
+    /// Получить список всех событий.
+    /// </summary>
+    [ProducesResponseType(typeof(List<EventDto>), StatusCodes.Status200OK)]
     [HttpGet]
-    public IActionResult GetEvents()
+    public ActionResult<List<EventDto>> GetEvents()
     {
-        return Ok();
+        var events = eventService.GetEvents();
+
+        return Ok(events);
     }
-    // GET /events/{id} — получить событие по id; если не найдено — вернуть корректный HTTP-ответ (например, 404);
-    [HttpGet("{id}")]
-    public IActionResult GetEvent(int id)
+
+    /// <summary>
+    /// Получить событие по id.
+    /// </summary>
+    /// <param name="id">Идентификатор события.</param>
+    [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("{id:guid}")]
+    public ActionResult<EventDto> GetEvent(Guid id)
     {
-        return Ok();
+        var eventDto = eventService.GetEvent(id);
+
+        if (eventDto == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(eventDto);
     }
-    // POST /events — создать событие, возвращать корректный HTTP-ответ (например, 201);
+
+    /// <summary>
+    /// Создать событие.
+    /// </summary>
+    /// <param name="eventForCreationDto">Параметры события.</param>
+    [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
     [HttpPost]
-    public IActionResult CreateEvent(EventForCreationDto eventDto)
+    public IActionResult CreateEvent(EventForCreationDto eventForCreationDto)
     {
-        return Ok();
+        var newEventDto = eventService.CreateEvent(eventForCreationDto);
+
+        return CreatedAtAction(nameof(GetEvent), new { id = newEventDto.Id }, newEventDto);
     }
-    // PUT /events/{id} — обновить событие целиком; если не найдено — вернуть корректный HTTP-ответ (например, 404);
-    [HttpPut("{id}")]
-    public IActionResult UpdateEvent(int id, EventForUpdateDto eventDto)
+
+    /// <summary>
+    /// Обновить событие.
+    /// </summary>
+    /// <param name="id">Идентификатор события.</param>
+    /// <param name="eventForUpdateDto">Параметры для обновления.</param>
+    [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPut("{id:guid}")]
+    public IActionResult UpdateEvent(Guid id, EventForUpdateDto eventForUpdateDto)
     {
-        return Ok();
+        var eventDto = eventService.GetEvent(id);
+
+        if (eventDto == null)
+        {
+            return NotFound();
+        }
+
+        eventDto = eventService.UpdateEvent(id, eventForUpdateDto);
+
+        return Ok(eventDto);
     }
-    // DELETE /events/{id} — удалить событие; если не найдено — вернуть корректный HTTP-ответ (например, 404).
-    [HttpDelete("{id}")]
-    public IActionResult DeleteEvent(int id)
+
+    /// <summary>
+    /// Удалить событие.
+    /// </summary>
+    /// <param name="id">Идентификатор события.</param>
+    [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpDelete("{id:guid}")]
+    public IActionResult DeleteEvent(Guid id)
     {
+        var eventDto = eventService.GetEvent(id);
+
+        if (eventDto == null)
+        {
+            return NotFound();
+        }
+
+        eventService.DeleteEvent(id);
+
         return Ok();
     }
 }
-
