@@ -1,8 +1,11 @@
+using EventProject.Mapping;
 using EventProject.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddAutoMapper(mapper=>mapper.AddProfile<EventMappingProfile>());
+
 builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddControllers();
