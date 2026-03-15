@@ -28,9 +28,9 @@ public class EventService : IEventService
             : _mapper.Map<EventDto>(@event);
     }
 
-    public EventDto CreateEvent(EventForCreationDto eventDto)
+    public EventDto CreateEvent(EventForCreationDto eventForCreationDto)
     {
-        var @event = _mapper.Map<Event>(eventDto);
+        var @event = _mapper.Map<Event>(eventForCreationDto);
 
         @event.Id = Guid.NewGuid();
 
@@ -48,7 +48,8 @@ public class EventService : IEventService
             throw new Exception($"Событие с id = {id} не найдено");
         }
 
-        @event = new Event
+        var index = Events.IndexOf(@event);
+        Events[index] = new Event
         {
             Id = id,
             Title = eventForUpdateDto.Title,
@@ -57,7 +58,7 @@ public class EventService : IEventService
             EndAt = eventForUpdateDto.EndAt
         };
 
-        return _mapper.Map<EventDto>(@event);
+        return _mapper.Map<EventDto>(Events[index]);
     }
 
     public void DeleteEvent(Guid id)

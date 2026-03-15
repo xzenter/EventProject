@@ -1,7 +1,7 @@
 namespace EventProject.Controllers.Events.Dto;
 
 /// <summary>
-/// Объект события.
+/// Объект, описывающий событие.
 /// </summary>
 public class EventDto
 {

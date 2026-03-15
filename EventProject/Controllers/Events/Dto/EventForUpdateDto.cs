@@ -22,13 +22,13 @@ public class EventForUpdateDto : IValidatableObject
     /// Дата начала события.
     /// </summary>
     [Required]
-    public required DateTime StartAt { get; set; } // Возможно ?
+    public required DateTime StartAt { get; set; }
 
     /// <summary>
     /// Дата окончания события.
     /// </summary>
     [Required]
-    public required DateTime EndAt { get; set; } // Возможно ?
+    public required DateTime EndAt { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
