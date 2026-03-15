@@ -6,11 +6,13 @@ namespace EventProject.Controllers.Events;
 
 [ApiController]
 [Route("events")]
+[Produces("application/json")]
 public class EventsController(IEventService eventService) : ControllerBase
 {
     /// <summary>
     /// Получить список всех событий.
     /// </summary>
+    /// <response code="200">Запрос обработан.</response>
     [ProducesResponseType(typeof(List<EventDto>), StatusCodes.Status200OK)]
     [HttpGet]
     public ActionResult<List<EventDto>> GetEvents()
@@ -24,6 +26,8 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// Получить событие по id.
     /// </summary>
     /// <param name="id">Идентификатор события.</param>
+    /// <response code="200">Событие получено.</response>
+    /// <response code="404">Событие не найдено.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id:guid}")]
@@ -43,6 +47,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// Создать событие.
     /// </summary>
     /// <param name="eventForCreationDto">Параметры события.</param>
+    /// <response code="201">Событие создано.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
     [HttpPost]
     public IActionResult CreateEvent(EventForCreationDto eventForCreationDto)
@@ -57,6 +62,8 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор события.</param>
     /// <param name="eventForUpdateDto">Параметры для обновления.</param>
+    /// <response code="200">Событие успешно обновлено.</response>
+    /// <response code="404">Событие для обновления не найдено.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPut("{id:guid}")]
@@ -78,6 +85,8 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// Удалить событие.
     /// </summary>
     /// <param name="id">Идентификатор события.</param>
+    /// <response code="200">Событие успешно удалено.</response>
+    /// <response code="404">Событие для удаления не найдено.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{id:guid}")]
