@@ -3,5 +3,8 @@
     <File Path=".gitignore" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="EventProject/EventProject.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/EventProject/EventProject.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
 </Solution>
