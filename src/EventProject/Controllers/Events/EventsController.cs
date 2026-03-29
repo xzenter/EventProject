@@ -1,4 +1,5 @@
 using EventProject.Controllers.Events.Dto;
+using EventProject.Exceptions;
 using EventProject.Services;
 using Microsoft.AspNetCore.Mvc;
 
