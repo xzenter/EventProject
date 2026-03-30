@@ -1,5 +1,4 @@
 using EventProject.Controllers.Events.Dto;
-using EventProject.Exceptions;
 using EventProject.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,12 +12,15 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <summary>
     /// Получить список всех событий.
     /// </summary>
+    /// <param name="title">Название события.</param>
+    /// <param name="from">Дата начала события.</param>
+    /// <param name="to">Дата окончания события.</param>
     /// <response code="200">Запрос обработан.</response>
     [ProducesResponseType(typeof(List<EventDto>), StatusCodes.Status200OK)]
     [HttpGet]
-    public ActionResult<List<EventDto>> GetEvents()
+    public ActionResult<List<EventDto>> GetEvents(string? title, DateTime? from, DateTime? to)
     {
-        var events = eventService.GetEvents();
+        var events = eventService.GetEvents(title, from, to);
 
         return Ok(events);
     }

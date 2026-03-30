@@ -19,6 +19,18 @@ public class EventService : IEventService
         return _mapper.Map<IEnumerable<EventDto>>(Events);
     }
 
+    public IEnumerable<EventDto> GetEvents(string? title, DateTime? from, DateTime? to)
+    {
+        var events = Events
+            .Where(e =>
+                (title == null || e.Title.Contains(title, StringComparison.OrdinalIgnoreCase)) &&
+                (from == null || e.StartAt >= from) &&
+                (to == null || e.EndAt <= to)
+            );
+
+        return _mapper.Map<IEnumerable<EventDto>>(events);
+    }
+
     public EventDto? GetEvent(Guid id)
     {
         var @event = Events.FirstOrDefault(e => e.Id == id);
