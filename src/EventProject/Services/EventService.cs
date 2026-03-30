@@ -1,5 +1,7 @@
 using AutoMapper;
-using EventProject.Controllers.Events.Dto;
+using EventProject.Controllers;
+using EventProject.Controllers.Events.Query;
+using EventProject.Controllers.Events.Response;
 using EventProject.Models;
 
 namespace EventProject.Services;
@@ -14,21 +16,32 @@ public class EventService : IEventService
         _mapper = mapper;
     }
 
-    public IEnumerable<EventDto> GetEvents()
+    public PaginatedResult<EventDto> GetEvents(SearchEventsQuery query)
     {
-        return _mapper.Map<IEnumerable<EventDto>>(Events);
-    }
-
-    public IEnumerable<EventDto> GetEvents(string? title, DateTime? from, DateTime? to)
-    {
-        var events = Events
+        var filtered = Events
             .Where(e =>
-                (title == null || e.Title.Contains(title, StringComparison.OrdinalIgnoreCase)) &&
-                (from == null || e.StartAt >= from) &&
-                (to == null || e.EndAt <= to)
+                (query.Title == null || e.Title.Contains(query.Title, StringComparison.OrdinalIgnoreCase)) &&
+                (query.From == null || e.StartAt >= query.From) &&
+                (query.To == null || e.EndAt <= query.To)
             );
 
-        return _mapper.Map<IEnumerable<EventDto>>(events);
+        var filteredCount = filtered.Count();
+        var items = filtered
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .Select(e => _mapper.Map<EventDto>(e))
+            .ToList();
+
+        var totalPages = (int)Math.Ceiling((double)filteredCount / query.PageSize);
+
+        return new PaginatedResult<EventDto>
+        {
+            Items = items,
+            Page = query.Page,
+            PageSize = query.PageSize,
+            TotalItems = filteredCount,
+            TotalPages = totalPages
+        };
     }
 
     public EventDto? GetEvent(Guid id)
@@ -40,9 +53,9 @@ public class EventService : IEventService
             : _mapper.Map<EventDto>(@event);
     }
 
-    public EventDto CreateEvent(EventForCreationDto eventForCreationDto)
+    public EventDto CreateEvent(EventForCreationQuery eventForCreationQuery)
     {
-        var @event = _mapper.Map<Event>(eventForCreationDto);
+        var @event = _mapper.Map<Event>(eventForCreationQuery);
 
         @event.Id = Guid.NewGuid();
 
@@ -51,7 +64,7 @@ public class EventService : IEventService
         return _mapper.Map<EventDto>(@event);
     }
 
-    public EventDto UpdateEvent(Guid id, EventForUpdateDto eventForUpdateDto)
+    public EventDto UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery)
     {
         var @event = Events.FirstOrDefault(e => e.Id == id);
 
@@ -64,10 +77,10 @@ public class EventService : IEventService
         Events[index] = new Event
         {
             Id = id,
-            Title = eventForUpdateDto.Title,
-            Description = eventForUpdateDto.Description,
-            StartAt = eventForUpdateDto.StartAt,
-            EndAt = eventForUpdateDto.EndAt
+            Title = eventForUpdateQuery.Title,
+            Description = eventForUpdateQuery.Description,
+            StartAt = eventForUpdateQuery.StartAt,
+            EndAt = eventForUpdateQuery.EndAt
         };
 
         return _mapper.Map<EventDto>(Events[index]);

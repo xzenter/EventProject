@@ -1,13 +1,15 @@
-using EventProject.Controllers.Events.Dto;
+using EventProject.Controllers;
+using EventProject.Controllers.Events.Query;
+using EventProject.Controllers.Events.Response;
+using EventProject.Models;
 
 namespace EventProject.Services;
 
 public interface IEventService
 {
-    IEnumerable<EventDto> GetEvents();
-    IEnumerable<EventDto> GetEvents(string? title, DateTime? from, DateTime? to);
+    PaginatedResult<EventDto> GetEvents(SearchEventsQuery query);
     EventDto? GetEvent(Guid id);
-    EventDto CreateEvent(EventForCreationDto eventForCreationDto);
-    EventDto UpdateEvent(Guid id, EventForUpdateDto eventForUpdateDto);
+    EventDto CreateEvent(EventForCreationQuery eventForCreationQuery);
+    EventDto UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery);
     void DeleteEvent(Guid id);
 }
