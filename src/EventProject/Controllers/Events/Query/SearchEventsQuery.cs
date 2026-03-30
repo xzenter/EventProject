@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EventProject.Controllers.Events.Query;
 
 /// <summary>
@@ -23,10 +25,14 @@ public class SearchEventsQuery
     /// <summary>
     /// Номер текущей страницы.
     /// </summary>
+    [Range(1, int.MaxValue,
+        ErrorMessage = "Номер текущей страницы не может быть меньше 1 и больше 2147483647")]
     public int Page { get; set; } = 1;
 
     /// <summary>
     /// Количество элементов на странице.
     /// </summary>
+    [Range(1, int.MaxValue,
+        ErrorMessage = "Количество элементов на странице не может быть меньше 1 и больше 2147483647")]
     public int PageSize { get; set; } = 10;
 }
