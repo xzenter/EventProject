@@ -29,13 +29,18 @@ internal sealed class GlobalExceptionHandler(
             return false;
         }
 
+        var statusCode = MapStatusCode(exception);
+
         var problemDetails = new ProblemDetails
         {
-            Status = MapStatusCode(exception),
+            Status = statusCode,
             Type = exception.GetType().Name,
             Title = "Произошла необработанная ошибка",
             Detail = exception.Message
         };
+
+        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.ContentType = "application/json; charset=utf-8";
 
         await httpContext
             .Response
