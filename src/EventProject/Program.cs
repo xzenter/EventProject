@@ -1,5 +1,4 @@
 using System.Reflection;
-using EventProject.Mapping;
 using EventProject.Middlewares;
 using EventProject.Repository;
 using EventProject.Services;
