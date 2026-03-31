@@ -71,14 +71,14 @@ public class EventService : IEventService
         };
     }
 
-    public EventDto CreateEvent(EventForCreationQuery eventForCreationQuery)
+    public EventDto CreateEvent(EventForCreationQuery query)
     {
-        if (string.IsNullOrEmpty(eventForCreationQuery.Title))
+        if (string.IsNullOrEmpty(query.Title))
         {
             throw new BadRequestException("Заголовок события не может быть пустым");
         }
 
-        if (eventForCreationQuery.StartAt > eventForCreationQuery.EndAt)
+        if (query.StartAt > query.EndAt)
         {
             throw new BadRequestException("Дата начала события не может быть позже даты окончания");
         }
@@ -86,10 +86,10 @@ public class EventService : IEventService
         var newEvent = new Event
         {
             Id = Guid.NewGuid(),
-            Title = eventForCreationQuery.Title,
-            Description = eventForCreationQuery.Description,
-            StartAt = eventForCreationQuery.StartAt,
-            EndAt = eventForCreationQuery.EndAt
+            Title = query.Title,
+            Description = query.Description,
+            StartAt = query.StartAt,
+            EndAt = query.EndAt
         };
 
         _repository.Add(newEvent);
@@ -104,8 +104,13 @@ public class EventService : IEventService
         };
     }
 
-    public EventDto UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery)
+    public EventDto UpdateEvent(Guid id, EventForUpdateQuery query)
     {
+        if (query.StartAt > query.EndAt)
+        {
+            throw new BadRequestException("Дата начала события не может быть позже даты окончания");
+        }
+
         var findEvent = _repository.GetById(id);
 
         if (findEvent == null)
@@ -116,10 +121,10 @@ public class EventService : IEventService
         var newEvent = new Event
         {
             Id = id,
-            Title = eventForUpdateQuery.Title,
-            Description = eventForUpdateQuery.Description,
-            StartAt = eventForUpdateQuery.StartAt,
-            EndAt = eventForUpdateQuery.EndAt
+            Title = query.Title,
+            Description = query.Description,
+            StartAt = query.StartAt,
+            EndAt = query.EndAt
         };
 
         _repository.Update(findEvent.Id, newEvent);
@@ -127,10 +132,10 @@ public class EventService : IEventService
         return new EventDto()
         {
             Id = id,
-            Title = eventForUpdateQuery.Title,
-            Description = eventForUpdateQuery.Description,
-            StartAt = eventForUpdateQuery.StartAt,
-            EndAt = eventForUpdateQuery.EndAt
+            Title = query.Title,
+            Description = query.Description,
+            StartAt = query.StartAt,
+            EndAt = query.EndAt
         };
     }
 
