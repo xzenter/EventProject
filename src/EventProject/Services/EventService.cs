@@ -54,20 +54,20 @@ public class EventService : IEventService
 
     public EventDto GetEvent(Guid id)
     {
-        var @event = _repository.GetById(id);
+        var findEvent = _repository.GetById(id);
 
-        if (@event == null)
+        if (findEvent == null)
         {
             throw new NotFoundException($"Событие с id = {id} не найдено");
         }
 
         return new EventDto
         {
-            Id = @event.Id,
-            Title = @event.Title,
-            Description = @event.Description,
-            StartAt = @event.StartAt,
-            EndAt = @event.EndAt
+            Id = findEvent.Id,
+            Title = findEvent.Title,
+            Description = findEvent.Description,
+            StartAt = findEvent.StartAt,
+            EndAt = findEvent.EndAt
         };
     }
 
@@ -112,8 +112,6 @@ public class EventService : IEventService
         {
             throw new NotFoundException($"Событие с id = {id} не найдено");
         }
-
-        // var index = Events.IndexOf(@event);
 
         var newEvent = new Event
         {
