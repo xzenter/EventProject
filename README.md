@@ -19,7 +19,7 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 2. Перейдите в папку решения EventProject
 3. Выполните команду `dotnet restore` - установка нужных пакетов для проектов в рамках решения
 4. Выполните команду `dotnet build src/EventProject/EventProject.csproj` - сборка проекта EventProject
-5. Выполните команду `dotnet dotnet run --project src/EventProject/EventProject.csproj` - запуск проекта EventProject.
+5. Выполните команду `dotnet run --project src/EventProject/EventProject.csproj` - запуск проекта EventProject.
 
 ## Запуск тестов
 1. Выполните предыдущие шаги по сборке проекта
