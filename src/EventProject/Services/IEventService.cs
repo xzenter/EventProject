@@ -8,7 +8,7 @@ namespace EventProject.Services;
 public interface IEventService
 {
     PaginatedResult<EventDto> GetEvents(SearchEventsQuery query);
-    EventDto? GetEvent(Guid id);
+    EventDto GetEvent(Guid id);
     EventDto CreateEvent(EventForCreationQuery eventForCreationQuery);
     EventDto UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery);
     void DeleteEvent(Guid id);

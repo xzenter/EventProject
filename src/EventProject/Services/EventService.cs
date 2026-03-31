@@ -1,24 +1,25 @@
-using AutoMapper;
 using EventProject.Controllers;
 using EventProject.Controllers.Events.Query;
 using EventProject.Controllers.Events.Response;
+using EventProject.Exceptions;
 using EventProject.Models;
+using EventProject.Repository;
 
 namespace EventProject.Services;
 
 public class EventService : IEventService
 {
-    private readonly IMapper _mapper;
-    private static readonly List<Event> Events = [];
+    private readonly IEventRepository _repository;
 
-    public EventService(IMapper mapper)
+    public EventService(IEventRepository repository)
     {
-        _mapper = mapper;
+        _repository = repository;
     }
 
     public PaginatedResult<EventDto> GetEvents(SearchEventsQuery query)
     {
-        var filtered = Events
+        var filtered = _repository
+            .GetAll()
             .Where(e =>
                 (query.Title == null || e.Title.Contains(query.Title, StringComparison.OrdinalIgnoreCase)) &&
                 (query.From == null || e.StartAt >= query.From) &&
@@ -29,7 +30,14 @@ public class EventService : IEventService
         var items = filtered
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(e => _mapper.Map<EventDto>(e))
+            .Select(e => new EventDto
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                StartAt = e.StartAt,
+                EndAt = e.EndAt
+            })
             .ToList();
 
         var totalPages = (int)Math.Ceiling((double)filteredCount / query.PageSize);
@@ -44,37 +52,70 @@ public class EventService : IEventService
         };
     }
 
-    public EventDto? GetEvent(Guid id)
+    public EventDto GetEvent(Guid id)
     {
-        var @event = Events.FirstOrDefault(e => e.Id == id);
+        var @event = _repository.GetById(id);
 
-        return @event == null
-            ? null
-            : _mapper.Map<EventDto>(@event);
+        if (@event == null)
+        {
+            throw new NotFoundException($"Событие с id = {id} не найдено");
+        }
+
+        return new EventDto
+        {
+            Id = @event.Id,
+            Title = @event.Title,
+            Description = @event.Description,
+            StartAt = @event.StartAt,
+            EndAt = @event.EndAt
+        };
     }
 
     public EventDto CreateEvent(EventForCreationQuery eventForCreationQuery)
     {
-        var @event = _mapper.Map<Event>(eventForCreationQuery);
+        if (string.IsNullOrEmpty(eventForCreationQuery.Title))
+        {
+            throw new BadRequestException("Заголовок события не может быть пустым");
+        }
 
-        @event.Id = Guid.NewGuid();
+        if (eventForCreationQuery.StartAt > eventForCreationQuery.EndAt)
+        {
+            throw new BadRequestException("Дата начала события не может быть позже даты окончания");
+        }
 
-        Events.Add(@event);
+        var newEvent = new Event
+        {
+            Id = Guid.NewGuid(),
+            Title = eventForCreationQuery.Title,
+            Description = eventForCreationQuery.Description,
+            StartAt = eventForCreationQuery.StartAt,
+            EndAt = eventForCreationQuery.EndAt
+        };
 
-        return _mapper.Map<EventDto>(@event);
+        _repository.Add(newEvent);
+
+        return new EventDto()
+        {
+            Id = newEvent.Id,
+            Title = newEvent.Title,
+            Description = newEvent.Description,
+            StartAt = newEvent.StartAt,
+            EndAt = newEvent.EndAt
+        };
     }
 
     public EventDto UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery)
     {
-        var @event = Events.FirstOrDefault(e => e.Id == id);
+        var findEvent = _repository.GetById(id);
 
-        if (@event == null)
+        if (findEvent == null)
         {
-            throw new Exception($"Событие с id = {id} не найдено");
+            throw new NotFoundException($"Событие с id = {id} не найдено");
         }
 
-        var index = Events.IndexOf(@event);
-        Events[index] = new Event
+        // var index = Events.IndexOf(@event);
+
+        var newEvent = new Event
         {
             Id = id,
             Title = eventForUpdateQuery.Title,
@@ -83,19 +124,25 @@ public class EventService : IEventService
             EndAt = eventForUpdateQuery.EndAt
         };
 
-        return _mapper.Map<EventDto>(Events[index]);
+        _repository.Update(findEvent.Id, newEvent);
+
+        return new EventDto()
+        {
+            Id = id,
+            Title = eventForUpdateQuery.Title,
+            Description = eventForUpdateQuery.Description,
+            StartAt = eventForUpdateQuery.StartAt,
+            EndAt = eventForUpdateQuery.EndAt
+        };
     }
 
     public void DeleteEvent(Guid id)
     {
-        var @event = Events.FirstOrDefault(e => e.Id == id);
+        _repository.Delete(id);
 
-        if (@event == null)
-        {
-            return;
-        }
+        var hasEvent = _repository.GetById(id) != null;
 
-        if (!Events.Remove(@event))
+        if (hasEvent)
         {
             throw new Exception($"Событие с id = {id} не удалось удалить");
         }
