@@ -313,7 +313,14 @@ public class EventServiceTests
     [Fact]
     public void UpdateEvent_EndAtBeforeStartAt_ShouldThrowBadRequestException()
     {
-        var newDto = new EventForCreationQuery
+        foreach (var eventForCreation in _eventsForCreation)
+        {
+            _eventService.CreateEvent(eventForCreation);
+        }
+        
+        var event1 = _eventService.GetEvents(new SearchEventsQuery()).Items.First();
+        
+        var newEvent = new EventForUpdateQuery()
         {
             Title = "Test",
             Description = "Test",
@@ -321,7 +328,7 @@ public class EventServiceTests
             EndAt = DateTime.Now.AddDays(-1)
         };
 
-        var exception = () => _eventService.CreateEvent(newDto);
+        var exception = () => _eventService.UpdateEvent(event1.Id, newEvent);
 
         exception.Should().Throw<BadRequestException>();
     }
