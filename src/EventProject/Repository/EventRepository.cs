@@ -4,38 +4,38 @@ namespace EventProject.Repository;
 
 public class EventRepository : IEventRepository
 {
-    private readonly List<Event> Events = [];
+    private readonly List<Event> _events = [];
 
     public Event? GetById(Guid id)
     {
-        return Events.FirstOrDefault(e => e.Id == id);
+        return _events.FirstOrDefault(e => e.Id == id);
     }
 
     public IEnumerable<Event> GetAll()
     {
-        return Events;
+        return _events;
     }
 
     public Event Add(Event entity)
     {
-        Events.Add(entity);
+        _events.Add(entity);
         return entity;
     }
 
     public Event Update(Guid id, Event entity)
     {
-        var index = Events.FindIndex(e => e.Id == id);
-        Events[index] = entity;
+        var index = _events.FindIndex(e => e.Id == id);
+        _events[index] = entity;
         return entity;
     }
 
     public void Delete(Guid id)
     {
-        var findEvent = Events.FirstOrDefault(e => e.Id == id);
+        var findEvent = _events.FirstOrDefault(e => e.Id == id);
 
         if (findEvent != null)
         {
-            Events.Remove(findEvent);
+            _events.Remove(findEvent);
         }
     }
 }
