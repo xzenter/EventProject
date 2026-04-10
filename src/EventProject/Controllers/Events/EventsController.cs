@@ -1,5 +1,6 @@
 using EventProject.Controllers.Events.Query;
 using EventProject.Controllers.Events.Response;
+using EventProject.Models;
 using EventProject.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +9,10 @@ namespace EventProject.Controllers.Events;
 [ApiController]
 [Route("events")]
 [Produces("application/json")]
-public class EventsController(IEventService eventService) : ControllerBase
+public class EventsController(
+    IEventService eventService,
+    IBookingService bookingService
+) : ControllerBase
 {
     /// <summary>
     /// Получить список всех событий.
@@ -80,5 +84,51 @@ public class EventsController(IEventService eventService) : ControllerBase
     {
         eventService.DeleteEvent(id);
         return Ok();
+    }
+
+    /// <summary>
+    /// Создать бронирование для указанного события.
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <response code="202">Бронирование успешно создано.</response>
+    /// <response code="404">Событие для бронирования не найдено.</response>
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPost("{id:guid}/book")]
+    public IActionResult CreateBooking(Guid id)
+    {
+        var booking = bookingService.CreateBookingAsync(id);
+
+        var response = new CreateBookingResponse()
+        {
+            BookingId = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
+        return AcceptedAtRoute($"/bookings/{response.BookingId}", response);
+    }
+
+    /// <summary>
+    /// Получение брони по идентификатору.
+    /// </summary>
+    /// <param name="id">Идентификатор бронирования.</param>
+    /// <response code="200">Бронирование получено.</response>
+    /// <response code="404">Бронирование не найдено.</response>
+    [ProducesResponseType(typeof(Booking), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpGet("/bookings/{id:guid}")]
+    public ActionResult<Booking> GetBooking(Guid id)
+    {
+        var booking = bookingService.GetBookingByIdAsync(id);
+
+        var response = new CreateBookingResponse()
+        {
+            BookingId = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
+        return Ok(response);
     }
 }
