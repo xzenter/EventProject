@@ -1,8 +1,10 @@
+using EventProject.Dto.Response;
 using EventProject.Exceptions;
 using EventProject.Models;
-using EventProject.Repository;
+using EventProject.Repository.Booking;
+using EventProject.Repository.Event;
 
-namespace EventProject.Services;
+namespace EventProject.Services.Booking;
 
 public class BookingService : IBookingService
 {
@@ -15,7 +17,7 @@ public class BookingService : IBookingService
         _eventRepository = eventRepository;
     }
 
-    public Booking CreateBookingAsync(Guid eventId)
+    public BookingDto CreateBookingAsync(Guid eventId)
     {
         var findEvent = _eventRepository.GetById(eventId);
         if (findEvent == null)
@@ -23,7 +25,7 @@ public class BookingService : IBookingService
             throw new NotFoundException($"Событие с id = {eventId} не найдено");
         }
 
-        var booking = new Booking
+        var booking = new Models.Booking
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
@@ -34,10 +36,17 @@ public class BookingService : IBookingService
 
         _bookingRepository.Add(booking);
 
-        return booking;
+        var bookingDto = new BookingDto()
+        {
+            BookingId = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
+        return bookingDto;
     }
 
-    public Booking GetBookingByIdAsync(Guid bookingId)
+    public BookingDto GetBookingByIdAsync(Guid bookingId)
     {
         var booking = _bookingRepository.GetById(bookingId);
 
@@ -46,6 +55,13 @@ public class BookingService : IBookingService
             throw new NotFoundException($"Бронирование с id = {bookingId} не найдено");
         }
 
-        return booking;
+        var bookingDto = new BookingDto()
+        {
+            BookingId = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
+        return bookingDto;
     }
 }

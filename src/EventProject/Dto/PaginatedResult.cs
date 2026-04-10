@@ -1,4 +1,4 @@
-namespace EventProject.Controllers;
+namespace EventProject.Dto;
 
 public class PaginatedResult<T>
 {

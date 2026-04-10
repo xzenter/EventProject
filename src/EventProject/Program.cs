@@ -1,8 +1,10 @@
 using System.Reflection;
 using EventProject.BackgroundServices;
 using EventProject.Middlewares;
-using EventProject.Repository;
-using EventProject.Services;
+using EventProject.Repository.Booking;
+using EventProject.Repository.Event;
+using EventProject.Services.Booking;
+using EventProject.Services.Event;
 
 var builder = WebApplication.CreateBuilder(args);
 

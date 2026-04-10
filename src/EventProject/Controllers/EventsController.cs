@@ -1,10 +1,11 @@
-using EventProject.Controllers.Events.Query;
-using EventProject.Controllers.Events.Response;
+using EventProject.Dto.Query;
+using EventProject.Dto.Response;
 using EventProject.Models;
-using EventProject.Services;
+using EventProject.Services.Booking;
+using EventProject.Services.Event;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EventProject.Controllers.Events;
+namespace EventProject.Controllers;
 
 [ApiController]
 [Route("events")]
@@ -97,16 +98,8 @@ public class EventsController(
     [HttpPost("{id:guid}/book")]
     public IActionResult CreateBooking(Guid id)
     {
-        var booking = bookingService.CreateBookingAsync(id);
-
-        var response = new CreateBookingResponse()
-        {
-            BookingId = booking.Id,
-            EventId = booking.EventId,
-            Status = booking.Status
-        };
-
-        return AcceptedAtRoute($"/bookings/{response.BookingId}", response);
+        var bookingDto = bookingService.CreateBookingAsync(id);
+        return AcceptedAtRoute($"/bookings/{bookingDto.BookingId}", bookingDto);
     }
 
     /// <summary>
@@ -120,15 +113,7 @@ public class EventsController(
     [HttpGet("/bookings/{id:guid}")]
     public ActionResult<Booking> GetBooking(Guid id)
     {
-        var booking = bookingService.GetBookingByIdAsync(id);
-
-        var response = new CreateBookingResponse()
-        {
-            BookingId = booking.Id,
-            EventId = booking.EventId,
-            Status = booking.Status
-        };
-
-        return Ok(response);
+        var bookingDto = bookingService.GetBookingByIdAsync(id);
+        return Ok(bookingDto);
     }
 }

@@ -1,28 +1,26 @@
-using EventProject.Models;
-
-namespace EventProject.Repository;
+namespace EventProject.Repository.Booking;
 
 public class BookingRepository : IBookingRepository
 {
-    private readonly List<Booking> _booking = [];
+    private readonly List<Models.Booking> _booking = [];
 
-    public Booking? GetById(Guid id)
+    public Models.Booking? GetById(Guid id)
     {
         return _booking.FirstOrDefault(e => e.Id == id);
     }
 
-    public IEnumerable<Booking> GetAll()
+    public IEnumerable<Models.Booking> GetAll()
     {
         return _booking;
     }
 
-    public Booking Add(Booking entity)
+    public Models.Booking Add(Models.Booking entity)
     {
         _booking.Add(entity);
         return entity;
     }
 
-    public Booking Update(Guid id, Booking entity)
+    public Models.Booking Update(Guid id, Models.Booking entity)
     {
         var index = _booking.FindIndex(e => e.Id == id);
         _booking[index] = entity;

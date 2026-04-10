@@ -1,7 +1,9 @@
-﻿using EventProject.Controllers.Events.Query;
+﻿using EventProject.Dto.Query;
 using EventProject.Exceptions;
 using EventProject.Repository;
+using EventProject.Repository.Event;
 using EventProject.Services;
+using EventProject.Services.Event;
 using FluentAssertions;
 
 namespace EventProject.Tests;

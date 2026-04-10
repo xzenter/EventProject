@@ -1,5 +1,5 @@
 using EventProject.Models;
-using EventProject.Repository;
+using EventProject.Repository.Booking;
 
 namespace EventProject.BackgroundServices;
 

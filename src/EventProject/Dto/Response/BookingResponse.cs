@@ -1,8 +1,8 @@
 using EventProject.Models;
 
-namespace EventProject.Controllers.Events.Response;
+namespace EventProject.Dto.Response;
 
-public class CreateBookingResponse
+public class BookingDto
 {
     public Guid BookingId { get; set; }
     public Guid EventId { get; set; }

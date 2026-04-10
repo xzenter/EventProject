@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EventProject.Controllers.Events.Query;
+namespace EventProject.Dto.Query;
 
 /// <summary>
-/// Параметры для создания события.
+/// Параметры для обновления события.
 /// </summary>
-public class EventForCreationQuery : IValidatableObject
+public class EventForUpdateQuery : IValidatableObject
 {
     /// <summary>
     /// Название события.
