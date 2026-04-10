@@ -1,4 +1,5 @@
 using System.Reflection;
+using EventProject.BackgroundServices;
 using EventProject.Middlewares;
 using EventProject.Repository;
 using EventProject.Services;
@@ -10,6 +11,7 @@ builder.Services.AddSingleton<IEventRepository, EventRepository>();
 builder.Services.AddSingleton<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddHostedService<BookingProcessingService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
