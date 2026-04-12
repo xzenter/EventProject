@@ -96,9 +96,9 @@ public class EventsController(
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("{id:guid}/book")]
-    public IActionResult CreateBooking(Guid id)
+    public async Task<IActionResult> CreateBooking(Guid id)
     {
-        var bookingDto = bookingService.CreateBookingAsync(id);
+        var bookingDto = await bookingService.CreateBookingAsync(id);
         return AcceptedAtRoute($"/bookings/{bookingDto.BookingId}", bookingDto);
     }
 
@@ -111,9 +111,9 @@ public class EventsController(
     [ProducesResponseType(typeof(Booking), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("/bookings/{id:guid}")]
-    public ActionResult<Booking> GetBooking(Guid id)
+    public async Task<ActionResult<Booking>> GetBooking(Guid id)
     {
-        var bookingDto = bookingService.GetBookingByIdAsync(id);
+        var bookingDto = await bookingService.GetBookingByIdAsync(id);
         return Ok(bookingDto);
     }
 }

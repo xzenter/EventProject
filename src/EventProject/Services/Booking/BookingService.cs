@@ -17,7 +17,7 @@ public class BookingService : IBookingService
         _eventRepository = eventRepository;
     }
 
-    public BookingDto CreateBookingAsync(Guid eventId)
+    public async Task<BookingDto> CreateBookingAsync(Guid eventId)
     {
         var findEvent = _eventRepository.GetById(eventId);
         if (findEvent == null)
@@ -46,7 +46,7 @@ public class BookingService : IBookingService
         return bookingDto;
     }
 
-    public BookingDto GetBookingByIdAsync(Guid bookingId)
+    public async Task<BookingDto> GetBookingByIdAsync(Guid bookingId)
     {
         var booking = _bookingRepository.GetById(bookingId);
 
