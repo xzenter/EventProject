@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using EventProject.BackgroundServices;
 using EventProject.Middlewares;
 using EventProject.Repository.Booking;
@@ -15,7 +16,13 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddHostedService<BookingProcessingService>();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
