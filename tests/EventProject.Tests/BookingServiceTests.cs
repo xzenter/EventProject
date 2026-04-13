@@ -71,7 +71,7 @@ public class BookingServiceTests
         var booking2 = await _bookingService.CreateBookingAsync(eventId);
 
         // Assert
-        booking1.BookingId.Should().NotBe(booking2.BookingId);
+        booking1.Id.Should().NotBe(booking2.Id);
     }
 
     // Получение брони по Id — возвращается корректная информация
@@ -97,7 +97,7 @@ public class BookingServiceTests
         var result = await _bookingService.GetBookingByIdAsync(bookingId);
 
         // Assert
-        result.BookingId.Should().Be(bookingId);
+        result.Id.Should().Be(bookingId);
         result.EventId.Should().Be(eventId);
         result.Status.Should().Be(BookingStatus.Pending);
     }

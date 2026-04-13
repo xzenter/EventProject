@@ -1,3 +1,4 @@
+using EventProject.Dto.Response;
 using EventProject.Models;
 using EventProject.Services.Booking;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,15 @@ public class BookingController(
     [HttpPost("/events/{id:guid}/book")]
     public async Task<IActionResult> CreateBooking(Guid id)
     {
-        var bookingDto = await bookingService.CreateBookingAsync(id);
+        var booking = await bookingService.CreateBookingAsync(id);
+
+        var bookingDto = new BookingDto()
+        {
+            BookingId = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
         return Accepted($"/bookings/{bookingDto.BookingId}", bookingDto);
     }
 
@@ -36,7 +45,15 @@ public class BookingController(
     [HttpGet("/bookings/{id:guid}")]
     public async Task<ActionResult<Booking>> GetBooking(Guid id)
     {
-        var bookingDto = await bookingService.GetBookingByIdAsync(id);
+        var booking = await bookingService.GetBookingByIdAsync(id);
+
+        var bookingDto = new BookingDto()
+        {
+            BookingId = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
         return Ok(bookingDto);
     }
 }
