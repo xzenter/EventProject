@@ -2,38 +2,38 @@ namespace EventProject.Repository.Booking;
 
 public class BookingRepository : IBookingRepository
 {
-    private readonly List<Models.Booking> _booking = [];
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, Models.Booking> _booking = [];
 
     public Models.Booking? GetById(Guid id)
     {
-        return _booking.FirstOrDefault(e => e.Id == id);
+        _booking.TryGetValue(id, out var booking);
+        return booking;
     }
 
     public IEnumerable<Models.Booking> GetAll()
     {
-        return _booking;
+        return _booking.Values;
     }
 
     public Models.Booking Add(Models.Booking entity)
     {
-        _booking.Add(entity);
+        _booking[entity.Id] = entity;
         return entity;
     }
 
     public Models.Booking Update(Guid id, Models.Booking entity)
     {
-        var index = _booking.FindIndex(e => e.Id == id);
-        _booking[index] = entity;
+        if (!_booking.TryGetValue(id, out _))
+        {
+            throw new KeyNotFoundException($"Booking with id {id} was not found.");
+        }
+
+        _booking[id] = entity;
         return entity;
     }
 
     public void Delete(Guid id)
     {
-        var findEvent = _booking.FirstOrDefault(e => e.Id == id);
-
-        if (findEvent != null)
-        {
-            _booking.Remove(findEvent);
-        }
+        _booking.TryRemove(id, out _);
     }
 }

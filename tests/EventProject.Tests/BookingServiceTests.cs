@@ -141,9 +141,25 @@ public class BookingServiceTests
     }
 
     // Создание брони для несуществующего события
-    // Создание брони для удалённого события
     [Fact]
     public async Task CreateBooking_ForNonExistentEvent_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var eventId = Guid.NewGuid();
+        _eventRepositoryMock
+            .Setup(x => x.GetById(eventId))
+            .Returns((Event?)null);
+
+        // Act
+        var action = () => _bookingService.CreateBookingAsync(eventId);
+
+        // Assert
+        await action.Should().ThrowAsync<NotFoundException>();
+    }
+    
+    // Создание брони для удалённого события
+    [Fact]
+    public async Task CreateBooking_ForDeletedEvent_ShouldThrowNotFoundException()
     {
         // Arrange
         var eventId = Guid.NewGuid();

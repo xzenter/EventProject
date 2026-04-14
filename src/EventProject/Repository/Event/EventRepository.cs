@@ -2,38 +2,38 @@ namespace EventProject.Repository.Event;
 
 public class EventRepository : IEventRepository
 {
-    private readonly List<Models.Event> _events = [];
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, Models.Event> _events = [];
 
     public Models.Event? GetById(Guid id)
     {
-        return _events.FirstOrDefault(e => e.Id == id);
+        _events.TryGetValue(id, out var eventEntity);
+        return eventEntity;
     }
 
     public IEnumerable<Models.Event> GetAll()
     {
-        return _events;
+        return _events.Values;
     }
 
     public Models.Event Add(Models.Event entity)
     {
-        _events.Add(entity);
+        _events[entity.Id] = entity;
         return entity;
     }
 
     public Models.Event Update(Guid id, Models.Event entity)
     {
-        var index = _events.FindIndex(e => e.Id == id);
-        _events[index] = entity;
+        if (!_events.TryGetValue(id, out _))
+        {
+            throw new KeyNotFoundException($"Event with id {id} was not found.");
+        }
+
+        _events[id] = entity;
         return entity;
     }
 
     public void Delete(Guid id)
     {
-        var findEvent = _events.FirstOrDefault(e => e.Id == id);
-
-        if (findEvent != null)
-        {
-            _events.Remove(findEvent);
-        }
+        _events.TryRemove(id, out _);
     }
 }

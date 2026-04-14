@@ -55,14 +55,16 @@ public class BookingProcessingService : BackgroundService
             // Имитация обработки
             await Task.Delay(2000, stoppingToken);
 
-            repository.Update(booking.Id, new Booking
-            {
-                Id = booking.Id,
-                EventId = booking.EventId,
-                Status = BookingStatus.Confirmed,
-                CreatedAt = booking.CreatedAt,
-                ProcessedAt = DateTime.UtcNow
-            });
+            repository.Update(
+                booking.Id,
+                new Booking
+                {
+                    Id = booking.Id,
+                    EventId = booking.EventId,
+                    Status = BookingStatus.Confirmed,
+                    CreatedAt = booking.CreatedAt,
+                    ProcessedAt = DateTime.UtcNow
+                });
         }
     }
 }
