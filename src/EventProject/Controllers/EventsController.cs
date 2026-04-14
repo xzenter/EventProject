@@ -1,5 +1,6 @@
 using EventProject.Dto.Query;
 using EventProject.Dto.Response;
+using EventProject.Services.Booking;
 using EventProject.Services.Event;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +10,8 @@ namespace EventProject.Controllers;
 [Route("events")]
 [Produces("application/json")]
 public class EventsController(
-    IEventService eventService
+    IEventService eventService,
+    IBookingService bookingService
 ) : ControllerBase
 {
     /// <summary>
@@ -82,5 +84,21 @@ public class EventsController(
     {
         eventService.DeleteEvent(id);
         return Ok();
+    }
+
+    /// <summary>
+    /// Создать бронирование для указанного события.
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <response code="202">Бронирование успешно создано.</response>
+    /// <response code="404">Событие для бронирования не найдено.</response>
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [HttpPost("/events/{id:guid}/book")]
+    public async Task<IActionResult> CreateBooking(Guid id)
+    {
+        var bookingInfo = await bookingService.CreateBookingAsync(id);
+
+        return Accepted($"/bookings/{bookingInfo.Id}", bookingInfo);
     }
 }

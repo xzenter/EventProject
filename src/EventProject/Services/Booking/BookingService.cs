@@ -16,7 +16,7 @@ public class BookingService : IBookingService
         _eventRepository = eventRepository;
     }
 
-    public async Task<Models.Booking> CreateBookingAsync(Guid eventId)
+    public async Task<BookingInfo> CreateBookingAsync(Guid eventId)
     {
         var findEvent = _eventRepository.GetById(eventId);
         if (findEvent == null)
@@ -35,10 +35,17 @@ public class BookingService : IBookingService
 
         _bookingRepository.Add(booking);
 
-        return booking;
+        var bookingInfo = new BookingInfo
+        {
+            Id = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
+        return bookingInfo;
     }
 
-    public async Task<Models.Booking> GetBookingByIdAsync(Guid bookingId)
+    public async Task<BookingInfo> GetBookingByIdAsync(Guid bookingId)
     {
         var booking = _bookingRepository.GetById(bookingId);
 
@@ -47,6 +54,13 @@ public class BookingService : IBookingService
             throw new NotFoundException($"Бронирование с id = {bookingId} не найдено");
         }
 
-        return booking;
+        var bookingInfo = new BookingInfo
+        {
+            Id = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status
+        };
+
+        return bookingInfo;
     }
 }
