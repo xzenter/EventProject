@@ -46,8 +46,8 @@ public class BookingProcessingService : BackgroundService
         var repository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
 
         var bookings = repository
-            .GetAll()
-            .Where(b => b is { Status: BookingStatus.Pending, ProcessedAt: null })
+            .GetByStatus(BookingStatus.Pending)
+            .Where(b => b is { Status: BookingStatus.Pending })
             .ToList();
 
         foreach (var booking in bookings)

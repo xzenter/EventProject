@@ -1,3 +1,5 @@
+using EventProject.Models;
+
 namespace EventProject.Repository.Booking;
 
 public class BookingRepository : IBookingRepository
@@ -10,9 +12,9 @@ public class BookingRepository : IBookingRepository
         return booking;
     }
 
-    public IEnumerable<Models.Booking> GetAll()
+    public IEnumerable<Models.Booking> GetByStatus(BookingStatus status)
     {
-        return _booking.Values;
+        return _booking.Values.Where(x => x.Status == status);
     }
 
     public Models.Booking Add(Models.Booking entity)
