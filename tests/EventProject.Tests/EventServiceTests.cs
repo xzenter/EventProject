@@ -1,7 +1,7 @@
-﻿using EventProject.Controllers.Events.Query;
+﻿using EventProject.Dto.Query;
 using EventProject.Exceptions;
-using EventProject.Repository;
-using EventProject.Services;
+using EventProject.Repository.Event;
+using EventProject.Services.Event;
 using FluentAssertions;
 
 namespace EventProject.Tests;
@@ -298,7 +298,7 @@ public class EventServiceTests
     {
         var newDto = new EventForCreationQuery
         {
-            Title = null,
+            Title = null!,
             Description = null,
             StartAt = DateTime.Now,
             EndAt = DateTime.Now.AddDays(1)

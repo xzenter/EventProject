@@ -1,11 +1,10 @@
-using EventProject.Controllers;
-using EventProject.Controllers.Events.Query;
-using EventProject.Controllers.Events.Response;
+using EventProject.Dto;
+using EventProject.Dto.Query;
+using EventProject.Dto.Response;
 using EventProject.Exceptions;
-using EventProject.Models;
-using EventProject.Repository;
+using EventProject.Repository.Event;
 
-namespace EventProject.Services;
+namespace EventProject.Services.Event;
 
 public class EventService : IEventService
 {
@@ -83,7 +82,7 @@ public class EventService : IEventService
             throw new BadRequestException("Дата начала события не может быть позже даты окончания");
         }
 
-        var newEvent = new Event
+        var newEvent = new Models.Event
         {
             Id = Guid.NewGuid(),
             Title = query.Title,
@@ -118,7 +117,7 @@ public class EventService : IEventService
             throw new NotFoundException($"Событие с id = {id} не найдено");
         }
 
-        var newEvent = new Event
+        var newEvent = new Models.Event
         {
             Id = id,
             Title = query.Title,
