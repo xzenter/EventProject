@@ -1,5 +1,6 @@
 using EventProject.Models;
 using EventProject.Repository.Booking;
+using EventProject.Repository.Event;
 
 namespace EventProject.BackgroundServices;
 
@@ -7,6 +8,7 @@ public class BookingProcessingService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<BookingProcessingService> _logger;
+    private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
     public BookingProcessingService(IServiceProvider serviceProvider, ILogger<BookingProcessingService> logger)
     {
@@ -22,7 +24,17 @@ public class BookingProcessingService : BackgroundService
         {
             try
             {
-                await ProcessBookingsAsync(stoppingToken);
+                using var scope = _serviceProvider.CreateScope();
+
+                var repository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+
+                var pendingBookings = repository
+                    .GetByStatus(BookingStatus.Pending)
+                    .ToList();
+
+                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
+
+                await Task.WhenAll(tasks);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -39,32 +51,77 @@ public class BookingProcessingService : BackgroundService
         _logger.LogInformation("Сервис управления обработкой брони остановлен");
     }
 
-    private async Task ProcessBookingsAsync(CancellationToken stoppingToken)
+    private async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
     {
         using var scope = _serviceProvider.CreateScope();
 
-        var repository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+        var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+        var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
 
-        var bookings = repository
-            .GetByStatus(BookingStatus.Pending)
-            .Where(b => b is { Status: BookingStatus.Pending })
-            .ToList();
+        // имитация внешнего вызова
+        await Task.Delay(1000, stoppingToken);
 
-        foreach (var booking in bookings)
+        await _processingSemaphore.WaitAsync(stoppingToken);
+
+        try
         {
-            // Имитация обработки
-            await Task.Delay(2000, stoppingToken);
+            Process(booking, stoppingToken, bookingRepository, eventRepository);
+        }
+        finally
+        {
+            _processingSemaphore.Release();
+        }
+    }
 
-            repository.Update(
-                booking.Id,
-                new Booking
-                {
-                    Id = booking.Id,
-                    EventId = booking.EventId,
-                    Status = BookingStatus.Confirmed,
-                    CreatedAt = booking.CreatedAt,
-                    ProcessedAt = DateTime.UtcNow
-                });
+    private void Process(Booking booking, CancellationToken stoppingToken,
+        IBookingRepository bookingRepository, IEventRepository eventRepository)
+    {
+        Event? @event = null;
+
+        try
+        {
+            @event = eventRepository.GetById(booking.EventId);
+
+            if (@event is null)
+            {
+                booking.Reject(DateTime.UtcNow);
+                bookingRepository.Update(booking.Id, booking);
+
+                _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
+            }
+            else
+            {
+                booking.Confirm(DateTime.UtcNow);
+                bookingRepository.Update(booking.Id, booking);
+
+                _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            booking.Reject(DateTime.UtcNow);
+            bookingRepository.Update(booking.Id, booking);
+
+            if (@event is not null)
+            {
+                @event.ReleaseSeats();
+                eventRepository.Update(@event.Id, @event);
+            }
+
+            _logger.LogInformation("Обработка брони {BookingId} была отменена", booking.Id);
+        }
+        catch (Exception)
+        {
+            booking.Reject(DateTime.UtcNow);
+            bookingRepository.Update(booking.Id, booking);
+
+            if (@event is not null)
+            {
+                @event.ReleaseSeats();
+                eventRepository.Update(@event.Id, @event);
+            }
+
+            _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", booking.Id);
         }
     }
 }
