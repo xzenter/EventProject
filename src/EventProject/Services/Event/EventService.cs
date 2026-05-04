@@ -35,7 +35,9 @@ public class EventService : IEventService
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats
             })
             .ToList();
 
@@ -66,7 +68,9 @@ public class EventService : IEventService
             Title = findEvent.Title,
             Description = findEvent.Description,
             StartAt = findEvent.StartAt,
-            EndAt = findEvent.EndAt
+            EndAt = findEvent.EndAt,
+            TotalSeats = findEvent.TotalSeats,
+            AvailableSeats = findEvent.AvailableSeats
         };
     }
 
