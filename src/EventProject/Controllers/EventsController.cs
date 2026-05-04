@@ -92,8 +92,10 @@ public class EventsController(
     /// <param name="id">Идентификатор события</param>
     /// <response code="202">Бронирование успешно создано.</response>
     /// <response code="404">Событие для бронирования не найдено.</response>
+    /// <response code="409">Нет доступных мест на событие</response>
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [HttpPost("/events/{id:guid}/book")]
     public async Task<IActionResult> CreateBooking(Guid id)
     {
