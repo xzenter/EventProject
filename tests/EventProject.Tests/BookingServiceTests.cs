@@ -392,7 +392,7 @@ public class BookingServiceTests
                 try
                 {
                     await bookingService.CreateBookingAsync(eventId);
-                    return (Success: true, Exception: null);
+                    return (Success: true, Exception: (Exception?)null);
                 }
                 catch (Exception ex)
                 {
