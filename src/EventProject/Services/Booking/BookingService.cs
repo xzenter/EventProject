@@ -10,6 +10,8 @@ public class BookingService : IBookingService
     private readonly IBookingRepository _bookingRepository;
     private readonly IEventRepository _eventRepository;
 
+    private readonly object _bookingLock = new();
+
     public BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository)
     {
         _bookingRepository = bookingRepository;
@@ -18,31 +20,34 @@ public class BookingService : IBookingService
 
     public async Task<BookingInfo> CreateBookingAsync(Guid eventId)
     {
-        var findEvent = _eventRepository.GetById(eventId);
-        if (findEvent == null)
+        lock (_bookingLock)
         {
-            throw new NotFoundException($"Событие с id = {eventId} не найдено");
+            var findEvent = _eventRepository.GetById(eventId);
+            if (findEvent == null) throw new NotFoundException($"Событие с id = {eventId} не найдено");
+
+            if (!findEvent.TryReserveSeats())
+                throw new NoAvailableSeatsException("No available seats for this event");
+
+            var booking = new Models.Booking
+            {
+                Id = Guid.NewGuid(),
+                EventId = eventId,
+                Status = BookingStatus.Pending,
+                CreatedAt = DateTime.Now,
+                ProcessedAt = null
+            };
+
+            _bookingRepository.Add(booking);
+
+            var bookingInfo = new BookingInfo
+            {
+                Id = booking.Id,
+                EventId = booking.EventId,
+                Status = booking.Status
+            };
+
+            return bookingInfo;
         }
-
-        var booking = new Models.Booking
-        {
-            Id = Guid.NewGuid(),
-            EventId = eventId,
-            Status = BookingStatus.Pending,
-            CreatedAt = DateTime.Now,
-            ProcessedAt = null
-        };
-
-        _bookingRepository.Add(booking);
-
-        var bookingInfo = new BookingInfo
-        {
-            Id = booking.Id,
-            EventId = booking.EventId,
-            Status = booking.Status
-        };
-
-        return bookingInfo;
     }
 
     public async Task<BookingInfo> GetBookingByIdAsync(Guid bookingId)
