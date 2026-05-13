@@ -35,7 +35,9 @@ public class EventService : IEventService
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats
             })
             .ToList();
 
@@ -66,7 +68,9 @@ public class EventService : IEventService
             Title = findEvent.Title,
             Description = findEvent.Description,
             StartAt = findEvent.StartAt,
-            EndAt = findEvent.EndAt
+            EndAt = findEvent.EndAt,
+            TotalSeats = findEvent.TotalSeats,
+            AvailableSeats = findEvent.AvailableSeats
         };
     }
 
@@ -88,7 +92,9 @@ public class EventService : IEventService
             Title = query.Title,
             Description = query.Description,
             StartAt = query.StartAt,
-            EndAt = query.EndAt
+            EndAt = query.EndAt,
+            TotalSeats = query.TotalSeats,
+            AvailableSeats = query.TotalSeats
         };
 
         _repository.Add(newEvent);
@@ -99,7 +105,9 @@ public class EventService : IEventService
             Title = newEvent.Title,
             Description = newEvent.Description,
             StartAt = newEvent.StartAt,
-            EndAt = newEvent.EndAt
+            EndAt = newEvent.EndAt,
+            TotalSeats = newEvent.TotalSeats,
+            AvailableSeats = newEvent.AvailableSeats 
         };
     }
 
@@ -123,7 +131,9 @@ public class EventService : IEventService
             Title = query.Title,
             Description = query.Description,
             StartAt = query.StartAt,
-            EndAt = query.EndAt
+            EndAt = query.EndAt,
+            TotalSeats = findEvent.TotalSeats,
+            AvailableSeats = findEvent.AvailableSeats
         };
 
         _repository.Update(findEvent.Id, newEvent);
