@@ -1,31 +1,30 @@
+using EventProject.DataAccess;
 using EventProject.Exceptions;
 using EventProject.Models;
-using EventProject.Repository.Booking;
-using EventProject.Repository.Event;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.Services.Booking;
 
 public class BookingService : IBookingService
 {
-    private readonly IBookingRepository _bookingRepository;
-    private readonly IEventRepository _eventRepository;
+    private readonly AppDbContext _appDbContext;
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
-    private readonly object _bookingLock = new();
-
-    public BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository)
+    public BookingService(AppDbContext appDbContext)
     {
-        _bookingRepository = bookingRepository;
-        _eventRepository = eventRepository;
+        _appDbContext = appDbContext;
     }
 
-    public async Task<BookingInfo> CreateBookingAsync(Guid eventId)
+    public async Task<BookingInfo> CreateBooking(Guid eventId, CancellationToken ct = default)
     {
-        lock (_bookingLock)
-        {
-            var findEvent = _eventRepository.GetById(eventId);
-            if (findEvent == null) throw new NotFoundException($"Событие с id = {eventId} не найдено");
+        await Semaphore.WaitAsync(ct);
 
-            if (!findEvent.TryReserveSeats())
+        try
+        {
+            var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);
+            if (existingEvent == null) throw new NotFoundException($"Событие с id = {eventId} не найдено");
+
+            if (!existingEvent.TryReserveSeats())
                 throw new NoAvailableSeatsException("No available seats for this event");
 
             var booking = new Models.Booking
@@ -33,11 +32,13 @@ public class BookingService : IBookingService
                 Id = Guid.NewGuid(),
                 EventId = eventId,
                 Status = BookingStatus.Pending,
-                CreatedAt = DateTime.Now,
-                ProcessedAt = null
+                CreatedAt = DateTime.UtcNow,
+                ProcessedAt = null,
+                Event = existingEvent
             };
 
-            _bookingRepository.Add(booking);
+            await _appDbContext.Bookings.AddAsync(booking, ct);
+            await _appDbContext.SaveChangesAsync(ct);
 
             var bookingInfo = new BookingInfo
             {
@@ -48,11 +49,15 @@ public class BookingService : IBookingService
 
             return bookingInfo;
         }
+        finally
+        {
+            Semaphore.Release();
+        }
     }
 
-    public async Task<BookingInfo> GetBookingByIdAsync(Guid bookingId)
+    public async Task<BookingInfo> GetBookingById(Guid bookingId, CancellationToken ct = default)
     {
-        var booking = _bookingRepository.GetById(bookingId);
+        var booking = await _appDbContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, ct);
 
         if (booking == null)
         {
