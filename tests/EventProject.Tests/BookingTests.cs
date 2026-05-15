@@ -15,7 +15,8 @@ public class BookingTests
             EventId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
-            ProcessedAt = null
+            ProcessedAt = null,
+            Event = null
         };
 
         // Act
@@ -37,7 +38,8 @@ public class BookingTests
             EventId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
-            ProcessedAt = null
+            ProcessedAt = null,
+            Event = null
         };
 
         // Act

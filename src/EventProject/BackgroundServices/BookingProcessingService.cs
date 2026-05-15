@@ -1,18 +1,19 @@
+using EventProject.DataAccess;
 using EventProject.Models;
 using EventProject.Repository.Booking;
 using EventProject.Repository.Event;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.BackgroundServices;
 
 public class BookingProcessingService : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _factory;
     private readonly ILogger<BookingProcessingService> _logger;
-    private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
-    public BookingProcessingService(IServiceProvider serviceProvider, ILogger<BookingProcessingService> logger)
+    public BookingProcessingService(IServiceScopeFactory factory, ILogger<BookingProcessingService> logger)
     {
-        _serviceProvider = serviceProvider;
+        _factory = factory;
         _logger = logger;
     }
 
@@ -24,15 +25,15 @@ public class BookingProcessingService : BackgroundService
         {
             try
             {
-                using var scope = _serviceProvider.CreateScope();
+                using var scope = _factory.CreateScope();
+                var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                var repository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+                var pendingBookings = await appDbContext.Bookings
+                    .Where(b => b.Status == BookingStatus.Pending)
+                    .Take(50) // Ограничить количество обрабатываемых броней
+                    .ToListAsync(stoppingToken);
 
-                var pendingBookings = repository
-                    .GetByStatus(BookingStatus.Pending)
-                    .ToList();
-
-                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
+                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking.Id, stoppingToken));
 
                 await Task.WhenAll(tasks);
             }
@@ -51,77 +52,60 @@ public class BookingProcessingService : BackgroundService
         _logger.LogInformation("Сервис управления обработкой брони остановлен");
     }
 
-    private async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
+    private async Task ProcessBookingAsync(Guid bookingId, CancellationToken stoppingToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-
-        var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
-        var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+        using var scope = _factory.CreateScope();
+        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         // имитация внешнего вызова
         await Task.Delay(1000, stoppingToken);
 
-        await _processingSemaphore.WaitAsync(stoppingToken);
-
-        try
-        {
-            Process(booking, stoppingToken, bookingRepository, eventRepository);
-        }
-        finally
-        {
-            _processingSemaphore.Release();
-        }
-    }
-
-    private void Process(Booking booking, CancellationToken stoppingToken,
-        IBookingRepository bookingRepository, IEventRepository eventRepository)
-    {
         Event? @event = null;
+        var booking = await appDbContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, stoppingToken);
 
         try
         {
-            @event = eventRepository.GetById(booking.EventId);
+            if (booking is null)
+            {
+                _logger.LogWarning("Бронь {BookingId} не найдена", bookingId);
+                return;
+            }
+
+            @event = await appDbContext.Events.FirstOrDefaultAsync(e => e.Id == booking.EventId, stoppingToken);
 
             if (@event is null)
             {
+                // Если событие не найдено, отклоняем бронь, так как она не может быть обработана без связанного события
                 booking.Reject(DateTime.UtcNow);
-                bookingRepository.Update(booking.Id, booking);
+                await appDbContext.SaveChangesAsync(stoppingToken);
 
                 _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
-            }
-            else
-            {
-                booking.Confirm(DateTime.UtcNow);
-                bookingRepository.Update(booking.Id, booking);
 
-                _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
+                return;
             }
+
+            // Подтверждаем бронь
+            booking.Confirm(DateTime.UtcNow);
+            await appDbContext.SaveChangesAsync(stoppingToken);
+
+            _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            booking.Reject(DateTime.UtcNow);
-            bookingRepository.Update(booking.Id, booking);
-
-            if (@event is not null)
-            {
-                @event.ReleaseSeats();
-                eventRepository.Update(@event.Id, @event);
-            }
-
-            _logger.LogInformation("Обработка брони {BookingId} была отменена", booking.Id);
+            _logger.LogInformation("Обработка брони {BookingId} была отменена", bookingId);
         }
         catch (Exception)
         {
-            booking.Reject(DateTime.UtcNow);
-            bookingRepository.Update(booking.Id, booking);
-
-            if (@event is not null)
+            if (booking is not null)
             {
-                @event.ReleaseSeats();
-                eventRepository.Update(@event.Id, @event);
+                booking.Reject(DateTime.UtcNow);
+
+                if (@event is not null) @event.ReleaseSeats();
+
+                await appDbContext.SaveChangesAsync(stoppingToken);
             }
 
-            _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", booking.Id);
+            _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", bookingId);
         }
     }
 }

@@ -1,34 +1,36 @@
+using EventProject.DataAccess;
 using EventProject.Dto;
 using EventProject.Dto.Query;
 using EventProject.Dto.Response;
 using EventProject.Exceptions;
-using EventProject.Repository.Event;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.Services.Event;
 
 public class EventService : IEventService
 {
-    private readonly IEventRepository _repository;
+    private readonly AppDbContext _appDbContext;
 
-    public EventService(IEventRepository repository)
+    public EventService(AppDbContext appDbContext)
     {
-        _repository = repository;
+        _appDbContext = appDbContext;
     }
 
-    public PaginatedResult<EventDto> GetEvents(SearchEventsQuery query)
+    public async Task<PaginatedResult<EventDto>> GetEvents(SearchEventsQuery query, CancellationToken ct = default)
     {
-        var filtered = _repository
-            .GetAll()
-            .Where(e =>
-                (query.Title == null || e.Title.Contains(query.Title, StringComparison.OrdinalIgnoreCase)) &&
-                (query.From == null || e.StartAt >= query.From) &&
-                (query.To == null || e.EndAt <= query.To)
-            );
+        var filtered = _appDbContext.Events
+            .Where(e => (string.IsNullOrWhiteSpace(query.Title) || e.Title.Contains(query.Title)) &&
+                        (!query.From.HasValue || e.StartAt >= query.From) &&
+                        (!query.To.HasValue || e.EndAt <= query.To));
 
-        var filteredCount = filtered.Count();
-        var items = filtered
+        var filteredCount = await filtered.CountAsync(ct);
+
+        var entities = await filtered
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
+            .ToListAsync(ct);
+
+        var items = entities
             .Select(e => new EventDto
             {
                 Id = e.Id,
@@ -53,9 +55,9 @@ public class EventService : IEventService
         };
     }
 
-    public EventDto GetEvent(Guid id)
+    public async Task<EventDto> GetEvent(Guid id, CancellationToken ct = default)
     {
-        var findEvent = _repository.GetById(id);
+        var findEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
 
         if (findEvent == null)
         {
@@ -74,7 +76,7 @@ public class EventService : IEventService
         };
     }
 
-    public EventDto CreateEvent(EventForCreationQuery query)
+    public async Task<EventDto> CreateEvent(EventForCreationQuery query, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(query.Title))
         {
@@ -97,7 +99,8 @@ public class EventService : IEventService
             AvailableSeats = query.TotalSeats
         };
 
-        _repository.Add(newEvent);
+        await _appDbContext.Events.AddAsync(newEvent, ct);
+        await _appDbContext.SaveChangesAsync(ct);
 
         return new EventDto()
         {
@@ -107,56 +110,52 @@ public class EventService : IEventService
             StartAt = newEvent.StartAt,
             EndAt = newEvent.EndAt,
             TotalSeats = newEvent.TotalSeats,
-            AvailableSeats = newEvent.AvailableSeats 
+            AvailableSeats = newEvent.AvailableSeats
         };
     }
 
-    public EventDto UpdateEvent(Guid id, EventForUpdateQuery query)
+    public async Task<EventDto> UpdateEvent(Guid id, EventForUpdateQuery query, CancellationToken ct = default)
     {
         if (query.StartAt > query.EndAt)
         {
             throw new BadRequestException("Дата начала события не может быть позже даты окончания");
         }
 
-        var findEvent = _repository.GetById(id);
+        var findEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
 
         if (findEvent == null)
         {
             throw new NotFoundException($"Событие с id = {id} не найдено");
         }
 
-        var newEvent = new Models.Event
-        {
-            Id = id,
-            Title = query.Title,
-            Description = query.Description,
-            StartAt = query.StartAt,
-            EndAt = query.EndAt,
-            TotalSeats = findEvent.TotalSeats,
-            AvailableSeats = findEvent.AvailableSeats
-        };
+        findEvent.Title = query.Title;
+        findEvent.Description = query.Description;
+        findEvent.StartAt = query.StartAt;
+        findEvent.EndAt = query.EndAt;
+        findEvent.TotalSeats = findEvent.TotalSeats;
+        findEvent.AvailableSeats = findEvent.AvailableSeats;
 
-        _repository.Update(findEvent.Id, newEvent);
+        await _appDbContext.SaveChangesAsync(ct);
 
         return new EventDto()
         {
-            Id = id,
-            Title = query.Title,
-            Description = query.Description,
-            StartAt = query.StartAt,
-            EndAt = query.EndAt
+            Id = findEvent.Id,
+            Title = findEvent.Title,
+            Description = findEvent.Description,
+            StartAt = findEvent.StartAt,
+            EndAt = findEvent.EndAt
         };
     }
 
-    public void DeleteEvent(Guid id)
+    public async Task DeleteEvent(Guid id, CancellationToken ct = default)
     {
-        _repository.Delete(id);
+        var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
 
-        var hasEvent = _repository.GetById(id) != null;
+        if (existingEvent is null)
+            throw new NotFoundException($"Событие с id = {id} не удалось удалить");
 
-        if (hasEvent)
-        {
-            throw new Exception($"Событие с id = {id} не удалось удалить");
-        }
+        _appDbContext.Events.Remove(existingEvent);
+
+        await _appDbContext.SaveChangesAsync(ct);
     }
 }

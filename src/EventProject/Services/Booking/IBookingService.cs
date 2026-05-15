@@ -4,6 +4,6 @@ namespace EventProject.Services.Booking;
 
 public interface IBookingService
 {
-    Task<BookingInfo> CreateBookingAsync(Guid eventId);
-    Task<BookingInfo> GetBookingByIdAsync(Guid bookingId);
+    Task<BookingInfo> CreateBooking(Guid eventId, CancellationToken ct);
+    Task<BookingInfo> GetBookingById(Guid bookingId, CancellationToken ct);
 }

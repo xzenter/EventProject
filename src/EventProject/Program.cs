@@ -1,13 +1,21 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 using EventProject.BackgroundServices;
+using EventProject.DataAccess;
 using EventProject.Middlewares;
 using EventProject.Repository.Booking;
 using EventProject.Repository.Event;
 using EventProject.Services.Booking;
 using EventProject.Services.Event;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                       ?? throw new InvalidOperationException("Connection string 'Default' not found.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // Add services to the container.
 builder.Services.AddSingleton<IEventRepository, EventRepository>();
@@ -37,6 +45,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+} 
 
 app.UseExceptionHandler();
 
