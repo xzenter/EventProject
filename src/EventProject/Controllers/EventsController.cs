@@ -10,8 +10,7 @@ namespace EventProject.Controllers;
 [Route("events")]
 [Produces("application/json")]
 public class EventsController(
-    IEventService eventService,
-    IBookingService bookingService
+    IEventService eventService
 ) : ControllerBase
 {
     /// <summary>
@@ -21,9 +20,10 @@ public class EventsController(
     /// <response code="200">Запрос обработан.</response>
     [ProducesResponseType(typeof(List<EventDto>), StatusCodes.Status200OK)]
     [HttpGet]
-    public ActionResult<List<EventDto>> GetEvents([FromQuery] SearchEventsQuery query)
+    public async Task<ActionResult<List<EventDto>>> GetEvents([FromQuery] SearchEventsQuery query,
+        CancellationToken ct = default)
     {
-        var events = eventService.GetEvents(query);
+        var events = await eventService.GetEvents(query, ct);
         return Ok(events);
     }
 
@@ -36,9 +36,9 @@ public class EventsController(
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id:guid}")]
-    public ActionResult<EventDto> GetEvent(Guid id)
+    public async Task<ActionResult<EventDto>> GetEvent(Guid id, CancellationToken ct = default)
     {
-        var eventDto = eventService.GetEvent(id);
+        var eventDto = await eventService.GetEvent(id, ct);
         return Ok(eventDto);
     }
 
@@ -49,9 +49,10 @@ public class EventsController(
     /// <response code="201">Событие создано.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
     [HttpPost]
-    public IActionResult CreateEvent(EventForCreationQuery eventForCreationQuery)
+    public async Task<IActionResult> CreateEvent(EventForCreationQuery eventForCreationQuery,
+        CancellationToken ct = default)
     {
-        var newEventDto = eventService.CreateEvent(eventForCreationQuery);
+        var newEventDto = await eventService.CreateEvent(eventForCreationQuery, ct);
         return CreatedAtAction(nameof(GetEvent), new { id = newEventDto.Id }, newEventDto);
     }
 
@@ -65,9 +66,10 @@ public class EventsController(
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPut("{id:guid}")]
-    public IActionResult UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery)
+    public async Task<IActionResult> UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery,
+        CancellationToken ct = default)
     {
-        var eventDto = eventService.UpdateEvent(id, eventForUpdateQuery);
+        var eventDto = await eventService.UpdateEvent(id, eventForUpdateQuery, ct);
         return Ok(eventDto);
     }
 
@@ -80,27 +82,9 @@ public class EventsController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{id:guid}")]
-    public IActionResult DeleteEvent(Guid id)
+    public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken ct = default)
     {
-        eventService.DeleteEvent(id);
+        await eventService.DeleteEvent(id, ct);
         return Ok();
-    }
-
-    /// <summary>
-    /// Создать бронирование для указанного события.
-    /// </summary>
-    /// <param name="id">Идентификатор события</param>
-    /// <response code="202">Бронирование успешно создано.</response>
-    /// <response code="404">Событие для бронирования не найдено.</response>
-    /// <response code="409">Нет доступных мест на событие</response>
-    [ProducesResponseType(StatusCodes.Status202Accepted)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    [HttpPost("/events/{id:guid}/book")]
-    public async Task<IActionResult> CreateBooking(Guid id)
-    {
-        var bookingInfo = await bookingService.CreateBookingAsync(id);
-
-        return Accepted($"/bookings/{bookingInfo.Id}", bookingInfo);
     }
 }
