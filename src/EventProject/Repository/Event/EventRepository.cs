@@ -1,39 +1,52 @@
+using EventProject.DataAccess;
+using Microsoft.EntityFrameworkCore;
+
 namespace EventProject.Repository.Event;
 
 public class EventRepository : IEventRepository
 {
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, Models.Event> _events = [];
+    private readonly AppDbContext _appDbContext;
 
-    public Models.Event? GetById(Guid id)
+    public EventRepository(AppDbContext appDbContext)
     {
-        _events.TryGetValue(id, out var eventEntity);
-        return eventEntity;
+        _appDbContext = appDbContext;
     }
 
-    public IEnumerable<Models.Event> GetAll()
+    public async Task<Models.Event?> GetById(Guid id, CancellationToken ct = default)
     {
-        return _events.Values;
+        return await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public Models.Event Add(Models.Event entity)
+    public async Task<IEnumerable<Models.Event>> GetByFilter(string? title, DateTime? from, DateTime? to,
+        CancellationToken ct)
     {
-        _events[entity.Id] = entity;
-        return entity;
+        var query = _appDbContext.Events.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(title))
+            query = query.Where(e => e.Title.Contains(title));
+
+        if (from.HasValue)
+            query = query.Where(e => e.StartAt >= from);
+
+        if (to.HasValue)
+            query = query.Where(e => e.EndAt <= to);
+
+        return await query.ToListAsync(ct);
     }
 
-    public Models.Event Update(Guid id, Models.Event entity)
+    public async Task Add(Models.Event entity, CancellationToken ct = default)
     {
-        if (!_events.TryGetValue(id, out _))
-        {
-            throw new KeyNotFoundException($"Event with id {id} was not found.");
-        }
-
-        _events[id] = entity;
-        return entity;
+        await _appDbContext.Events.AddAsync(entity, ct);
     }
 
-    public void Delete(Guid id)
+    public void Delete(Models.Event entity, CancellationToken ct = default)
     {
-        _events.TryRemove(id, out _);
+        _appDbContext.Events.Remove(entity);
+    }
+
+    public async Task<int> SaveChanges(CancellationToken ct = default)
+    {
+        return await _appDbContext
+            .SaveChangesAsync(ct);
     }
 }
