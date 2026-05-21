@@ -1,18 +1,20 @@
-using EventProject.DataAccess;
 using EventProject.Exceptions;
 using EventProject.Models;
-using Microsoft.EntityFrameworkCore;
+using EventProject.Repository.Booking;
+using EventProject.Repository.Event;
 
 namespace EventProject.Services.Booking;
 
 public class BookingService : IBookingService
 {
-    private readonly AppDbContext _appDbContext;
+    private readonly IBookingRepository _bookingRepository;
+    private readonly IEventRepository _eventRepository;
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
-    public BookingService(AppDbContext appDbContext)
+    public BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository)
     {
-        _appDbContext = appDbContext;
+        _bookingRepository = bookingRepository;
+        _eventRepository = eventRepository;
     }
 
     public async Task<BookingInfo> CreateBooking(Guid eventId, CancellationToken ct = default)
@@ -21,7 +23,7 @@ public class BookingService : IBookingService
 
         try
         {
-            var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == eventId, ct);
+            var existingEvent = await _eventRepository.GetById(eventId, ct);
             if (existingEvent == null) throw new NotFoundException($"Событие с id = {eventId} не найдено");
 
             if (!existingEvent.TryReserveSeats())
@@ -37,8 +39,8 @@ public class BookingService : IBookingService
                 Event = existingEvent
             };
 
-            await _appDbContext.Bookings.AddAsync(booking, ct);
-            await _appDbContext.SaveChangesAsync(ct);
+            await _bookingRepository.Add(booking, ct);
+            await _bookingRepository.SaveChanges(ct);
 
             var bookingInfo = new BookingInfo
             {
@@ -57,7 +59,7 @@ public class BookingService : IBookingService
 
     public async Task<BookingInfo> GetBookingById(Guid bookingId, CancellationToken ct = default)
     {
-        var booking = await _appDbContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, ct);
+        var booking = await _bookingRepository.GetById(bookingId, ct);
 
         if (booking == null)
         {
