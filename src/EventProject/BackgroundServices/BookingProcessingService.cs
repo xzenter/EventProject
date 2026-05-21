@@ -1,8 +1,6 @@
-using EventProject.DataAccess;
 using EventProject.Models;
 using EventProject.Repository.Booking;
 using EventProject.Repository.Event;
-using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.BackgroundServices;
 
@@ -26,14 +24,12 @@ public class BookingProcessingService : BackgroundService
             try
             {
                 using var scope = _factory.CreateScope();
-                var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+                var pendingBookings = await bookingRepository.GetByStatus(BookingStatus.Pending, stoppingToken);
 
-                var pendingBookings = await appDbContext.Bookings
-                    .Where(b => b.Status == BookingStatus.Pending)
-                    .Take(50) // Ограничить количество обрабатываемых броней
-                    .ToListAsync(stoppingToken);
-
-                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking.Id, stoppingToken));
+                var tasks = pendingBookings
+                    .Take(50)
+                    .Select(booking => ProcessBookingAsync(booking.Id, stoppingToken));
 
                 await Task.WhenAll(tasks);
             }
@@ -55,13 +51,14 @@ public class BookingProcessingService : BackgroundService
     private async Task ProcessBookingAsync(Guid bookingId, CancellationToken stoppingToken)
     {
         using var scope = _factory.CreateScope();
-        var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+        var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
 
         // имитация внешнего вызова
         await Task.Delay(1000, stoppingToken);
 
         Event? @event = null;
-        var booking = await appDbContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, stoppingToken);
+        var booking = await bookingRepository.GetById(bookingId, stoppingToken);
 
         try
         {
@@ -71,13 +68,14 @@ public class BookingProcessingService : BackgroundService
                 return;
             }
 
-            @event = await appDbContext.Events.FirstOrDefaultAsync(e => e.Id == booking.EventId, stoppingToken);
+            @event = await eventRepository.GetById(booking.EventId, stoppingToken);
 
             if (@event is null)
             {
                 // Если событие не найдено, отклоняем бронь, так как она не может быть обработана без связанного события
                 booking.Reject(DateTime.UtcNow);
-                await appDbContext.SaveChangesAsync(stoppingToken);
+                await bookingRepository.SaveChanges(stoppingToken);
+                await eventRepository.SaveChanges(stoppingToken);
 
                 _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
 
@@ -86,7 +84,8 @@ public class BookingProcessingService : BackgroundService
 
             // Подтверждаем бронь
             booking.Confirm(DateTime.UtcNow);
-            await appDbContext.SaveChangesAsync(stoppingToken);
+            await bookingRepository.SaveChanges(stoppingToken);
+            await eventRepository.SaveChanges(stoppingToken);
 
             _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
         }
@@ -102,7 +101,8 @@ public class BookingProcessingService : BackgroundService
 
                 if (@event is not null) @event.ReleaseSeats();
 
-                await appDbContext.SaveChangesAsync(stoppingToken);
+                await bookingRepository.SaveChanges(stoppingToken);
+                await eventRepository.SaveChanges(stoppingToken);
             }
 
             _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", bookingId);
