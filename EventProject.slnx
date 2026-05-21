@@ -7,6 +7,7 @@
     <Project Path="src/EventProject/EventProject.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/EventProject.IntegrationTests/EventProject.IntegrationTests.csproj" />
     <Project Path="tests/EventProject.Tests/EventProject.Tests.csproj" Id="11eeb38d-8755-46cb-9cbc-3acc11e7e76a" />
   </Folder>
 </Solution>
