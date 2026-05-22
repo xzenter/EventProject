@@ -22,7 +22,7 @@ public class BookingRepository : IBookingRepository
     public async Task<IEnumerable<Models.Booking>> GetByStatus(BookingStatus status, CancellationToken ct = default)
     {
         return await _appDbContext.Bookings
-            .Where(b => b.Status == BookingStatus.Pending)
+            .Where(b => b.Status == status)
             .ToListAsync(ct);
     }
 

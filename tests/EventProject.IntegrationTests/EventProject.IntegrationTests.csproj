@@ -22,6 +22,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Remove="Example.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\..\src\EventProject\EventProject.csproj" />
     </ItemGroup>
 
