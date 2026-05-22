@@ -9,7 +9,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
     public void Configure(EntityTypeBuilder<Booking> builder)
     {
         // Указание таблицы
-        builder.ToTable("Bookings");
+        builder.ToTable("bookings");
 
         // Указание PK
         builder.HasKey(b => b.Id);

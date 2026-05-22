@@ -9,7 +9,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
     public void Configure(EntityTypeBuilder<Event> builder)
     {
         // Указание таблицы
-        builder.ToTable("Events");
+        builder.ToTable("events");
 
         // Указание PK
         builder.HasKey(e => e.Id);
