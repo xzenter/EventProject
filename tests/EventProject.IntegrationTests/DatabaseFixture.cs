@@ -4,16 +4,20 @@ using Testcontainers.PostgreSql;
 
 namespace EventProject.IntegrationTests;
 
-public abstract class TestBase: IAsyncLifetime
+public class DatabaseFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container =
-        new PostgreSqlBuilder("postgres:16-alpine").Build();
+    private readonly PostgreSqlContainer _container;
+
+    public DatabaseFixture()
+    {
+        _container = new PostgreSqlBuilder("postgres:16-alpine").Build();
+    }
 
     public async ValueTask InitializeAsync()
     {
         await _container.StartAsync();
         await using var context = CreateContext();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
     }
 
     public async ValueTask DisposeAsync()

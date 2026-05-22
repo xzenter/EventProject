@@ -4,12 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.IntegrationTests;
 
-[CollectionDefinition("collection1")]
-public class BookingRepositoryTests : TestBase
+[Collection("Database collection")]
+public class BookingRepositoryTests
 {
+    private readonly DatabaseFixture _fixture;
+
+    public BookingRepositoryTests(DatabaseFixture fixture)
+    {
+        _fixture = fixture;
+    }
+    
     private async Task ResetDatabaseAsync()
     {
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
         await context.Database.ExecuteSqlRawAsync(
             "TRUNCATE TABLE bookings, events RESTART IDENTITY CASCADE");
     }
@@ -19,7 +26,7 @@ public class BookingRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var eventEntity = CreateEvent();
         await context.Events.AddAsync(eventEntity, CancellationToken.None);
@@ -33,7 +40,7 @@ public class BookingRepositoryTests : TestBase
         await repository.SaveChanges(CancellationToken.None);
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _fixture.CreateContext();
         var saved = await verifyContext.Bookings
             .FirstOrDefaultAsync(b => b.Id == booking.Id, CancellationToken.None);
 
@@ -48,7 +55,7 @@ public class BookingRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var eventEntity = CreateEvent();
         var booking = CreateBooking(eventEntity, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(5));
@@ -75,7 +82,7 @@ public class BookingRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
         var repository = new BookingRepository(context);
 
         // Act
@@ -90,7 +97,7 @@ public class BookingRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var eventEntity = CreateEvent();
         var confirmedBooking = CreateBooking(eventEntity, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(10));

@@ -3,12 +3,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.IntegrationTests;
 
-[CollectionDefinition("collection1")]
-public class EventRepositoryTests : TestBase
+[Collection("Database collection")]
+public class EventRepositoryTests
 {
+    private readonly DatabaseFixture _fixture;
+
+    public EventRepositoryTests(DatabaseFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
     private async Task ResetDatabaseAsync()
     {
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
         await context.Database.ExecuteSqlRawAsync(
             "TRUNCATE TABLE bookings, events RESTART IDENTITY CASCADE");
     }
@@ -18,7 +25,7 @@ public class EventRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var repository = new EventRepository(context);
         var eventEntity = CreateEvent("Repository conference", DateTime.UtcNow.AddDays(1));
@@ -28,7 +35,7 @@ public class EventRepositoryTests : TestBase
         await repository.SaveChanges(CancellationToken.None);
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _fixture.CreateContext();
         var saved = await verifyContext.Events
             .FirstOrDefaultAsync(e => e.Id == eventEntity.Id, CancellationToken.None);
 
@@ -45,7 +52,7 @@ public class EventRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var eventEntity = CreateEvent("Existing event", DateTime.UtcNow.AddDays(3));
         context.Events.Add(eventEntity);
@@ -67,7 +74,7 @@ public class EventRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
         var repository = new EventRepository(context);
 
         // Act
@@ -82,7 +89,7 @@ public class EventRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var matchingFirst = CreateEvent("DotNet meetup", DateTime.UtcNow.AddDays(1));
         var matchingSecond = CreateEvent("Advanced DotNet workshop", DateTime.UtcNow.AddDays(2));
@@ -108,7 +115,7 @@ public class EventRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var baseDate = DateTime.UtcNow.Date.AddDays(10);
         var beforeRange = CreateEvent("Before range", baseDate.AddDays(-2));
@@ -135,7 +142,7 @@ public class EventRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
-        await using var context = CreateContext();
+        await using var context = _fixture.CreateContext();
 
         var eventEntity = CreateEvent("Event to delete", DateTime.UtcNow.AddDays(5));
         context.Events.Add(eventEntity);
@@ -148,7 +155,7 @@ public class EventRepositoryTests : TestBase
         await repository.SaveChanges(CancellationToken.None);
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = _fixture.CreateContext();
         var deleted = await verifyContext.Events
             .FirstOrDefaultAsync(e => e.Id == eventEntity.Id, CancellationToken.None);
 
