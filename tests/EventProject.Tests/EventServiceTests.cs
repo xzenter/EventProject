@@ -1,18 +1,22 @@
 ﻿using EventProject.Dto.Query;
 using EventProject.Exceptions;
+using EventProject.Models;
 using EventProject.Repository.Event;
 using EventProject.Services.Event;
 using FluentAssertions;
+using Moq;
 
 namespace EventProject.Tests;
 
 public class EventServiceTests
 {
     private readonly EventService _eventService;
+    private readonly Mock<IEventRepository> _eventRepositoryMock;
 
     public EventServiceTests()
     {
-        _eventService = new EventService(new EventRepository());
+        _eventRepositoryMock = new Mock<IEventRepository>();
+        _eventService = new EventService(_eventRepositoryMock.Object);
     }
 
     private readonly List<EventForCreationQuery> _eventsForCreation =
@@ -52,7 +56,7 @@ public class EventServiceTests
 
     // создание события
     [Fact]
-    public void CreateEvent_ShouldReturnsEvent()
+    public async Task CreateEvent_ShouldReturnsEvent()
     {
         var eventForCreation = new EventForCreationQuery
         {
@@ -62,7 +66,7 @@ public class EventServiceTests
             EndAt = DateTime.Now.AddDays(1)
         };
 
-        var eventDto = _eventService.CreateEvent(eventForCreation);
+        var eventDto = await _eventService.CreateEvent(eventForCreation);
 
         eventDto.Should().NotBeNull();
         eventDto.Title.Should().Be(eventForCreation.Title);
@@ -74,13 +78,25 @@ public class EventServiceTests
 
     // получение всех событий
     [Fact]
-    public void GetEvents_ShouldReturnsEvents()
+    public async Task GetEvents_ShouldReturnsEvents()
     {
-        foreach (var eventForCreation in _eventsForCreation)
+        // Arrange
+        var events = _eventsForCreation.Select((e, i) => new Event
         {
-            _eventService.CreateEvent(eventForCreation);
-        }
+            Id = Guid.NewGuid(),
+            Title = e.Title,
+            Description = e.Description,
+            StartAt = e.StartAt,
+            EndAt = e.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        }).ToList();
 
+        _eventRepositoryMock
+            .Setup(x => x.GetByFilter(null, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(events);
+
+        // Act
         var searchQuery = new SearchEventsQuery
         {
             Title = null,
@@ -90,8 +106,9 @@ public class EventServiceTests
             PageSize = _eventsForCreation.Count
         };
 
-        var result = _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery);
 
+        // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(_eventsForCreation.Count);
         result.TotalItems.Should().Be(_eventsForCreation.Count);
@@ -99,27 +116,63 @@ public class EventServiceTests
 
     // получение события по ID
     [Fact]
-    public void GetEventById_ShouldReturnsEvent()
+    public async Task GetEventById_ShouldReturnsEvent()
     {
-        var eventForCreation = _eventsForCreation[0];
-        var eventDto = _eventService.CreateEvent(eventForCreation);
+        // Arrange
+        var eventId = Guid.NewGuid();
+        var eventEntity = new Event
+        {
+            Id = eventId,
+            Title = "Test Event",
+            Description = "Test Description",
+            StartAt = DateTime.Now,
+            EndAt = DateTime.Now.AddDays(1),
+            TotalSeats = 1,
+            AvailableSeats = 1
+        };
 
-        var result = _eventService.GetEvent(eventDto.Id);
+        _eventRepositoryMock
+            .Setup(x => x.GetById(eventId))
+            .ReturnsAsync(eventEntity);
 
+        // Act
+        var result = await _eventService.GetEvent(eventId);
+
+        // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(eventDto.Id);
-        result.Title.Should().Be(eventForCreation.Title);
-        result.Description.Should().Be(eventForCreation.Description);
-        result.StartAt.Should().Be(eventForCreation.StartAt);
-        result.EndAt.Should().Be(eventForCreation.EndAt);
+        result.Id.Should().Be(eventId);
+        result.Title.Should().Be(eventEntity.Title);
+        result.Description.Should().Be(eventEntity.Description);
+        result.StartAt.Should().Be(eventEntity.StartAt);
+        result.EndAt.Should().Be(eventEntity.EndAt);
     }
 
     // обновление существующего события
     [Fact]
-    public void UpdateEvent_ShouldReturnsUpdatedEvent()
+    public async Task UpdateEvent_ShouldReturnsUpdatedEvent()
     {
+        // Arrange
+        var eventId = Guid.NewGuid();
         var eventForCreation = _eventsForCreation[0];
-        var eventDto = _eventService.CreateEvent(eventForCreation);
+    
+        var eventEntity = new Event
+        {
+            Id = eventId,
+            Title = eventForCreation.Title,
+            Description = eventForCreation.Description,
+            StartAt = eventForCreation.StartAt,
+            EndAt = eventForCreation.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        };
+
+        _eventRepositoryMock
+            .Setup(x => x.GetById(eventId))
+            .ReturnsAsync(eventEntity);
+
+        _eventRepositoryMock
+            .Setup(x => x.SaveChanges(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
 
         var eventForUpdate = new EventForUpdateQuery
         {
@@ -129,10 +182,12 @@ public class EventServiceTests
             EndAt = DateTime.Now.AddDays(20)
         };
 
-        var result = _eventService.UpdateEvent(eventDto.Id, eventForUpdate);
+        // Act
+        var result = await _eventService.UpdateEvent(eventId, eventForUpdate);
 
+        // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(eventDto.Id);
+        result.Id.Should().Be(eventId);
         result.Title.Should().Be(eventForUpdate.Title);
         result.Description.Should().Be(eventForUpdate.Description);
         result.StartAt.Should().Be(eventForUpdate.StartAt);
@@ -141,27 +196,59 @@ public class EventServiceTests
 
     // удаление существующего события
     [Fact]
-    public void DeleteEvent_ShouldDeleteEvent()
+    public async Task DeleteEvent_ShouldDeleteEvent()
     {
-        var eventForCreation = _eventsForCreation[0];
-        var eventDto = _eventService.CreateEvent(eventForCreation);
+        // Arrange
+        var eventId = Guid.NewGuid();
 
-        _eventService.DeleteEvent(eventDto.Id);
+        var eventEntity = new Event
+        {
+            Id = eventId,
+            Title = "Test Event",
+            Description = "Test Description",
+            StartAt = DateTime.Now,
+            EndAt = DateTime.Now.AddDays(1),
+            TotalSeats = 1,
+            AvailableSeats = 1
+        };
 
-        var exception = () => _eventService.GetEvent(eventDto.Id);
+        _eventRepositoryMock
+            .Setup(x => x.GetById(eventId))
+            .ReturnsAsync(eventEntity);
 
-        exception.Should().Throw<NotFoundException>();
+        _eventRepositoryMock
+            .Setup(x => x.Delete(eventEntity))
+            .Verifiable();
+
+        // Act
+        await _eventService.DeleteEvent(eventId);
+
+        // Assert
+        _eventRepositoryMock.Verify(x => x.GetById(eventId), Times.Once);
+        _eventRepositoryMock.Verify(x => x.Delete(eventEntity), Times.Once);
     }
 
     // фильтрация по названию
     [Fact]
-    public void GetEvents_ShouldReturnsFilteredEvents()
+    public async Task GetEvents_ShouldReturnsFilteredEvents()
     {
-        foreach (var eventForCreation in _eventsForCreation)
+        // Arrange
+        var events = _eventsForCreation.Select((e, i) => new Event
         {
-            _eventService.CreateEvent(eventForCreation);
-        }
+            Id = Guid.NewGuid(),
+            Title = e.Title,
+            Description = e.Description,
+            StartAt = e.StartAt,
+            EndAt = e.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        }).ToList();
 
+        _eventRepositoryMock
+            .Setup(x => x.GetByFilter("Test Event 2", null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(events.Where(e => e.Title == "Test Event 2").ToList());
+
+        // Act
         var searchQuery = new SearchEventsQuery
         {
             Title = "Test Event 2",
@@ -171,8 +258,9 @@ public class EventServiceTests
             PageSize = 10
         };
 
-        var result = _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery);
 
+        // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(1);
         result.TotalItems.Should().Be(1);
@@ -181,15 +269,27 @@ public class EventServiceTests
 
     // фильтрация по датам (startDate, endDate)
     [Fact]
-    public void GetEvents_ShouldReturnsFilteredEventsByDates()
+    public async Task GetEvents_ShouldReturnsFilteredEventsByDates()
     {
-        foreach (var eventForCreation in _eventsForCreation)
+        // Arrange
+        var events = _eventsForCreation.Select((e, i) => new Event
         {
-            _eventService.CreateEvent(eventForCreation);
-        }
+            Id = Guid.NewGuid(),
+            Title = e.Title,
+            Description = e.Description,
+            StartAt = e.StartAt,
+            EndAt = e.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        }).ToList();
 
         var event1 = _eventsForCreation.First();
 
+        _eventRepositoryMock
+            .Setup(x => x.GetByFilter(null, event1.StartAt, event1.EndAt, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(events.Take(1).ToList());
+
+        // Act
         var searchQuery = new SearchEventsQuery
         {
             // Title = null,
@@ -199,8 +299,9 @@ public class EventServiceTests
             PageSize = 10
         };
 
-        var result = _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery);
 
+        // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(1);
         result.TotalItems.Should().Be(1);
@@ -216,21 +317,34 @@ public class EventServiceTests
     [InlineData(1, 1, 1)]
     [InlineData(2, 1, 1)]
     [InlineData(5, 1, 0)]
-    public void GetEvents_ShouldReturnsPaginatedResult(int page, int pageSize, int expectedCount)
+    public async Task GetEvents_ShouldReturnsPaginatedResult(int page, int pageSize, int expectedCount)
     {
-        foreach (var eventForCreation in _eventsForCreation)
+        // Arrange
+        var events = _eventsForCreation.Select((e, i) => new Event
         {
-            _eventService.CreateEvent(eventForCreation);
-        }
+            Id = Guid.NewGuid(),
+            Title = e.Title,
+            Description = e.Description,
+            StartAt = e.StartAt,
+            EndAt = e.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        }).ToList();
 
+        _eventRepositoryMock
+            .Setup(x => x.GetByFilter(null, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(events);
+
+        // Act
         var searchQuery = new SearchEventsQuery
         {
             Page = page,
             PageSize = pageSize
         };
 
-        var result = _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery);
 
+        // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(expectedCount);
         result.TotalItems.Should().Be(_eventsForCreation.Count);
@@ -240,16 +354,28 @@ public class EventServiceTests
 
     // комбинированная фильтрация
     [Fact]
-    public void GetEvents_ShouldReturnsFilteredAndPaginatedResult()
+    public async Task GetEvents_ShouldReturnsFilteredAndPaginatedResult()
     {
-        foreach (var eventForCreation in _eventsForCreation)
+        // Arrange
+        var events = _eventsForCreation.Select((e, i) => new Event
         {
-            _eventService.CreateEvent(eventForCreation);
-        }
+            Id = Guid.NewGuid(),
+            Title = e.Title,
+            Description = e.Description,
+            StartAt = e.StartAt,
+            EndAt = e.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        }).ToList();
 
         var element1 = _eventsForCreation.First();
         var element2 = _eventsForCreation.Skip(1).First();
 
+        _eventRepositoryMock
+            .Setup(x => x.GetByFilter("Test", element1.StartAt, element2.EndAt, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(events.Where(e => e.Title.Contains("Test") && e.StartAt >= element1.StartAt && e.EndAt <= element2.EndAt).ToList());
+
+        // Act
         var searchQuery = new SearchEventsQuery
         {
             Title = "Test",
@@ -259,8 +385,9 @@ public class EventServiceTests
             PageSize = int.MaxValue
         };
 
-        var result = _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery);
 
+        // Assert
         result.Should().NotBeNull();
         result.Items.Should().HaveCount(2);
         result.TotalItems.Should().Be(2);
@@ -268,17 +395,19 @@ public class EventServiceTests
 
     // попытка получить событие с несуществующим ID
     [Fact]
-    public void GetEvent_ShouldThrowNotFoundException()
+    public async Task GetEvent_ShouldThrowNotFoundException()
     {
         var exception = () => _eventService.GetEvent(Guid.NewGuid());
 
-        exception.Should().Throw<NotFoundException>();
+        await exception.Should().ThrowAsync<NotFoundException>();
     }
 
     // попытка обновить событие с несуществующим ID
     [Fact]
-    public void UpdateEvent_ShouldThrowNotFoundException()
+    public async Task UpdateEvent_ShouldThrowNotFoundException()
     {
+        // Arrange
+        var eventId = Guid.NewGuid();
         var newDto = new EventForUpdateQuery
         {
             Title = "Test",
@@ -287,14 +416,20 @@ public class EventServiceTests
             EndAt = DateTime.Now.AddDays(1)
         };
 
-        var exception = () => _eventService.UpdateEvent(Guid.NewGuid(), newDto);
+        _eventRepositoryMock
+            .Setup(x => x.GetById(eventId))
+            .ReturnsAsync((Event?)null);
 
-        exception.Should().Throw<NotFoundException>();
+        // Act
+        var exception = () => _eventService.UpdateEvent(eventId, newDto);
+
+        // Assert
+        await exception.Should().ThrowAsync<NotFoundException>();
     }
 
     // создание события с некорректными данными (если валидация в сервисе)
     [Fact]
-    public void CreateEvent_EmptyTitle_ShouldThrowBadRequestException()
+    public async Task CreateEvent_EmptyTitle_ShouldThrowBadRequestException()
     {
         var newDto = new EventForCreationQuery
         {
@@ -306,20 +441,32 @@ public class EventServiceTests
 
         var exception = () => _eventService.CreateEvent(newDto);
 
-        exception.Should().Throw<BadRequestException>();
+        await exception.Should().ThrowAsync<BadRequestException>();
     }
 
     // обновление события с некорректными датами (EndAt раньше StartAt)
     [Fact]
-    public void UpdateEvent_EndAtBeforeStartAt_ShouldThrowBadRequestException()
+    public async Task UpdateEvent_EndAtBeforeStartAt_ShouldThrowBadRequestException()
     {
-        foreach (var eventForCreation in _eventsForCreation)
+        // Arrange
+        var eventId = Guid.NewGuid();
+        var eventForCreation = _eventsForCreation[0];
+    
+        var eventEntity = new Event
         {
-            _eventService.CreateEvent(eventForCreation);
-        }
-        
-        var event1 = _eventService.GetEvents(new SearchEventsQuery()).Items.First();
-        
+            Id = eventId,
+            Title = eventForCreation.Title,
+            Description = eventForCreation.Description,
+            StartAt = eventForCreation.StartAt,
+            EndAt = eventForCreation.EndAt,
+            TotalSeats = 10,
+            AvailableSeats = 10
+        };
+
+        _eventRepositoryMock
+            .Setup(x => x.GetById(eventId))
+            .ReturnsAsync(eventEntity);
+
         var newEvent = new EventForUpdateQuery()
         {
             Title = "Test",
@@ -328,8 +475,10 @@ public class EventServiceTests
             EndAt = DateTime.Now.AddDays(-1)
         };
 
-        var exception = () => _eventService.UpdateEvent(event1.Id, newEvent);
+        // Act
+        var exception = () => _eventService.UpdateEvent(eventId, newEvent);
 
-        exception.Should().Throw<BadRequestException>();
+        // Assert
+        await exception.Should().ThrowAsync<BadRequestException>();
     }
 }
