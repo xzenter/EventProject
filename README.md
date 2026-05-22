@@ -191,8 +191,8 @@ BookingProcessingService - фоновый обработчик брониров�
 Логика обработки:
 
 1. Сервис периодически (в цикле) вызывает метод `ProcessBookingAsync`
-2. Внутри создаётся scope, откуда получается `IBookingStore` и
-3. Из `IBookingStore` выбираются брони с `Status == Pending` и `ProcessedAt == null`
+2. Внутри создаётся scope, откуда получается `IBookingRepository` и
+3. Из `IBookingRepository` выбираются брони с `Status == Pending` и `ProcessedAt == null`
 4. Для каждой найденной брони выполняется внешняя обработка, затем:
     - `Status` устанавливается в `Confirmed`, в зависимости от доступности свободных мест на событие или `Rejected` если
       количество мест на событие закончилось или пользователь отменил операцию

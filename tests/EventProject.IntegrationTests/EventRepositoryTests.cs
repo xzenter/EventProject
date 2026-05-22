@@ -1,39 +1,11 @@
-using EventProject.DataAccess;
 using EventProject.Repository.Event;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
 
 namespace EventProject.IntegrationTests;
 
 [CollectionDefinition("collection1")]
-public class EventRepositoryTests : IAsyncLifetime
+public class EventRepositoryTests : TestBase
 {
-    private readonly PostgreSqlContainer _container =
-        new PostgreSqlBuilder("postgres:16-alpine").Build();
-
-    public async Task InitializeAsync()
-    {
-        await _container.StartAsync();
-        await using var context = CreateContext();
-        await context.Database.EnsureCreatedAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _container.DisposeAsync();
-    }
-
-    private AppDbContext CreateContext()
-    {
-        var connectionString = _container.GetConnectionString();
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-
-        return new AppDbContext(options);
-    }
-
     private async Task ResetDatabaseAsync()
     {
         await using var context = CreateContext();
@@ -52,13 +24,13 @@ public class EventRepositoryTests : IAsyncLifetime
         var eventEntity = CreateEvent("Repository conference", DateTime.UtcNow.AddDays(1));
 
         // Act
-        await repository.Add(eventEntity);
-        await repository.SaveChanges();
+        await repository.Add(eventEntity, CancellationToken.None);
+        await repository.SaveChanges(CancellationToken.None);
 
         // Assert
         await using var verifyContext = CreateContext();
         var saved = await verifyContext.Events
-            .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
+            .FirstOrDefaultAsync(e => e.Id == eventEntity.Id, CancellationToken.None);
 
         Assert.NotNull(saved);
         Assert.Equal("Repository conference", saved.Title);
@@ -77,12 +49,12 @@ public class EventRepositoryTests : IAsyncLifetime
 
         var eventEntity = CreateEvent("Existing event", DateTime.UtcNow.AddDays(3));
         context.Events.Add(eventEntity);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new EventRepository(context);
 
         // Act
-        var result = await repository.GetById(eventEntity.Id);
+        var result = await repository.GetById(eventEntity.Id, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -99,7 +71,7 @@ public class EventRepositoryTests : IAsyncLifetime
         var repository = new EventRepository(context);
 
         // Act
-        var result = await repository.GetById(Guid.NewGuid());
+        var result = await repository.GetById(Guid.NewGuid(), CancellationToken.None);
 
         // Assert
         Assert.Null(result);
@@ -117,7 +89,7 @@ public class EventRepositoryTests : IAsyncLifetime
         var other = CreateEvent("Java conference", DateTime.UtcNow.AddDays(3));
 
         context.Events.AddRange(matchingFirst, matchingSecond, other);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new EventRepository(context);
 
@@ -144,7 +116,7 @@ public class EventRepositoryTests : IAsyncLifetime
         var afterRange = CreateEvent("After range", baseDate.AddDays(4));
 
         context.Events.AddRange(beforeRange, insideRange, afterRange);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new EventRepository(context);
 
@@ -167,18 +139,18 @@ public class EventRepositoryTests : IAsyncLifetime
 
         var eventEntity = CreateEvent("Event to delete", DateTime.UtcNow.AddDays(5));
         context.Events.Add(eventEntity);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new EventRepository(context);
 
         // Act
-        repository.Delete(eventEntity);
-        await repository.SaveChanges();
+        repository.Delete(eventEntity, CancellationToken.None);
+        await repository.SaveChanges(CancellationToken.None);
 
         // Assert
         await using var verifyContext = CreateContext();
         var deleted = await verifyContext.Events
-            .FirstOrDefaultAsync(e => e.Id == eventEntity.Id);
+            .FirstOrDefaultAsync(e => e.Id == eventEntity.Id, CancellationToken.None);
 
         Assert.Null(deleted);
     }

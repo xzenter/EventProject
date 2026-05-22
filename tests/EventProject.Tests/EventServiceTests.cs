@@ -66,7 +66,7 @@ public class EventServiceTests
             EndAt = DateTime.Now.AddDays(1)
         };
 
-        var eventDto = await _eventService.CreateEvent(eventForCreation);
+        var eventDto = await _eventService.CreateEvent(eventForCreation, CancellationToken.None);
 
         eventDto.Should().NotBeNull();
         eventDto.Title.Should().Be(eventForCreation.Title);
@@ -81,7 +81,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsEvents()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, i) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -106,7 +106,7 @@ public class EventServiceTests
             PageSize = _eventsForCreation.Count
         };
 
-        var result = await _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -136,7 +136,7 @@ public class EventServiceTests
             .ReturnsAsync(eventEntity);
 
         // Act
-        var result = await _eventService.GetEvent(eventId);
+        var result = await _eventService.GetEvent(eventId, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -183,7 +183,7 @@ public class EventServiceTests
         };
 
         // Act
-        var result = await _eventService.UpdateEvent(eventId, eventForUpdate);
+        var result = await _eventService.UpdateEvent(eventId, eventForUpdate, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -221,7 +221,7 @@ public class EventServiceTests
             .Verifiable();
 
         // Act
-        await _eventService.DeleteEvent(eventId);
+        await _eventService.DeleteEvent(eventId, CancellationToken.None);
 
         // Assert
         _eventRepositoryMock.Verify(x => x.GetById(eventId), Times.Once);
@@ -233,7 +233,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsFilteredEvents()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, i) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -258,7 +258,7 @@ public class EventServiceTests
             PageSize = 10
         };
 
-        var result = await _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -272,7 +272,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsFilteredEventsByDates()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, i) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -299,7 +299,7 @@ public class EventServiceTests
             PageSize = 10
         };
 
-        var result = await _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -320,7 +320,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsPaginatedResult(int page, int pageSize, int expectedCount)
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, i) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -342,7 +342,7 @@ public class EventServiceTests
             PageSize = pageSize
         };
 
-        var result = await _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -357,7 +357,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsFilteredAndPaginatedResult()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, i) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -385,7 +385,7 @@ public class EventServiceTests
             PageSize = int.MaxValue
         };
 
-        var result = await _eventService.GetEvents(searchQuery);
+        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();

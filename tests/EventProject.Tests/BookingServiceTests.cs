@@ -42,7 +42,7 @@ public class BookingServiceTests
             });
 
         // Act
-        var result = await _bookingService.CreateBooking(eventId);
+        var result = await _bookingService.CreateBooking(eventId, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -71,8 +71,8 @@ public class BookingServiceTests
             });
 
         // Act
-        var booking1 = await _bookingService.CreateBooking(eventId);
-        var booking2 = await _bookingService.CreateBooking(eventId);
+        var booking1 = await _bookingService.CreateBooking(eventId, CancellationToken.None);
+        var booking2 = await _bookingService.CreateBooking(eventId, CancellationToken.None);
 
         // Assert
         booking1.Id.Should().NotBe(booking2.Id);
@@ -95,11 +95,11 @@ public class BookingServiceTests
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.Now,
                 ProcessedAt = null,
-                Event = null,
+                Event = null!,
             });
 
         // Act
-        var result = await _bookingService.GetBookingById(bookingId);
+        var result = await _bookingService.GetBookingById(bookingId, CancellationToken.None);
 
         // Assert
         result.Id.Should().Be(bookingId);
@@ -123,7 +123,7 @@ public class BookingServiceTests
                 EventId = eventId,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.Now,
-                Event = null,
+                Event = null!,
             })
             .ReturnsAsync(new Booking
             {
@@ -132,12 +132,12 @@ public class BookingServiceTests
                 Status = BookingStatus.Confirmed,
                 CreatedAt = DateTime.Now,
                 ProcessedAt = DateTime.Now,
-                Event = null,
+                Event = null!,
             });
 
         // Act
-        var first = await _bookingService.GetBookingById(bookingId);
-        var second = await _bookingService.GetBookingById(bookingId);
+        var first = await _bookingService.GetBookingById(bookingId, CancellationToken.None);
+        var second = await _bookingService.GetBookingById(bookingId, CancellationToken.None);
 
         // Assert
         first.Status.Should().Be(BookingStatus.Pending);
@@ -218,7 +218,7 @@ public class BookingServiceTests
             .ReturnsAsync(eventEntity);
 
         // Act
-        await _bookingService.CreateBooking(eventId);
+        await _bookingService.CreateBooking(eventId, CancellationToken.None);
 
         // Assert
         eventEntity.AvailableSeats.Should().Be(initialAvailableSeats - 1);
@@ -249,7 +249,7 @@ public class BookingServiceTests
         var bookings = new List<BookingInfo>();
         for (var i = 0; i < totalSeats; i++)
         {
-            var booking = await _bookingService.CreateBooking(eventId);
+            var booking = await _bookingService.CreateBooking(eventId, CancellationToken.None);
             bookings.Add(booking);
         }
 
@@ -331,7 +331,7 @@ public class BookingServiceTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null,
+            Event = null!,
         };
 
         // Act
@@ -354,7 +354,7 @@ public class BookingServiceTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null,
+            Event = null!,
         };
 
         // Act

@@ -16,7 +16,7 @@ public class BookingTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null
+            Event = null!
         };
 
         // Act
@@ -39,7 +39,7 @@ public class BookingTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null
+            Event = null!
         };
 
         // Act

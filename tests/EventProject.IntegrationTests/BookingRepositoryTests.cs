@@ -1,40 +1,12 @@
-using EventProject.DataAccess;
 using EventProject.Models;
 using EventProject.Repository.Booking;
 using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
 
 namespace EventProject.IntegrationTests;
 
 [CollectionDefinition("collection1")]
-public class BookingRepositoryTests : IAsyncLifetime
+public class BookingRepositoryTests : TestBase
 {
-    private readonly PostgreSqlContainer _container =
-        new PostgreSqlBuilder("postgres:16-alpine").Build();
-
-    public async Task InitializeAsync()
-    {
-        await _container.StartAsync();
-        await using var context = CreateContext();
-        await context.Database.EnsureCreatedAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _container.DisposeAsync();
-    }
-
-    private AppDbContext CreateContext()
-    {
-        var connectionString = _container.GetConnectionString();
-
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-
-        return new AppDbContext(options);
-    }
-
     private async Task ResetDatabaseAsync()
     {
         await using var context = CreateContext();
@@ -50,20 +22,20 @@ public class BookingRepositoryTests : IAsyncLifetime
         await using var context = CreateContext();
 
         var eventEntity = CreateEvent();
-        await context.Events.AddAsync(eventEntity);
-        await context.SaveChangesAsync();
+        await context.Events.AddAsync(eventEntity, CancellationToken.None);
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new BookingRepository(context);
         var booking = CreateBooking(eventEntity, BookingStatus.Pending);
 
         // Act
-        await repository.Add(booking);
-        await repository.SaveChanges();
+        await repository.Add(booking, CancellationToken.None);
+        await repository.SaveChanges(CancellationToken.None);
 
         // Assert
         await using var verifyContext = CreateContext();
         var saved = await verifyContext.Bookings
-            .FirstOrDefaultAsync(b => b.Id == booking.Id);
+            .FirstOrDefaultAsync(b => b.Id == booking.Id, CancellationToken.None);
 
         Assert.NotNull(saved);
         Assert.Equal(eventEntity.Id, saved.EventId);
@@ -83,12 +55,12 @@ public class BookingRepositoryTests : IAsyncLifetime
 
         context.Events.Add(eventEntity);
         context.Bookings.Add(booking);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new BookingRepository(context);
 
         // Act
-        var result = await repository.GetById(booking.Id);
+        var result = await repository.GetById(booking.Id, CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -107,7 +79,7 @@ public class BookingRepositoryTests : IAsyncLifetime
         var repository = new BookingRepository(context);
 
         // Act
-        var result = await repository.GetById(Guid.NewGuid());
+        var result = await repository.GetById(Guid.NewGuid(), CancellationToken.None);
 
         // Assert
         Assert.Null(result);
@@ -127,12 +99,12 @@ public class BookingRepositoryTests : IAsyncLifetime
 
         context.Events.Add(eventEntity);
         context.Bookings.AddRange(confirmedBooking, pendingBooking, rejectedBooking);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(CancellationToken.None);
 
         var repository = new BookingRepository(context);
 
         // Act
-        var result = (await repository.GetByStatus(BookingStatus.Confirmed)).ToList();
+        var result = (await repository.GetByStatus(BookingStatus.Confirmed, CancellationToken.None)).ToList();
 
         // Assert
         Assert.Single(result);
