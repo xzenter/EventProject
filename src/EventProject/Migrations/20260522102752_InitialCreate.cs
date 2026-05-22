@@ -12,7 +12,7 @@ namespace EventProject.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Events",
+                name: "events",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -25,11 +25,11 @@ namespace EventProject.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Events", x => x.Id);
+                    table.PrimaryKey("PK_events", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Bookings",
+                name: "bookings",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -40,18 +40,18 @@ namespace EventProject.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Bookings", x => x.Id);
+                    table.PrimaryKey("PK_bookings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Bookings_Events_EventId",
+                        name: "FK_bookings_events_EventId",
                         column: x => x.EventId,
-                        principalTable: "Events",
+                        principalTable: "events",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Bookings_EventId",
-                table: "Bookings",
+                name: "IX_bookings_EventId",
+                table: "bookings",
                 column: "EventId");
         }
 
@@ -59,10 +59,10 @@ namespace EventProject.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Bookings");
+                name: "bookings");
 
             migrationBuilder.DropTable(
-                name: "Events");
+                name: "events");
         }
     }
 }

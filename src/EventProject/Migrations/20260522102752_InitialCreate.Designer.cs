@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260521100306_InitialCreate")]
+    [Migration("20260522102752_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -47,7 +47,7 @@ namespace EventProject.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("bookings", (string)null);
                 });
 
             modelBuilder.Entity("EventProject.Models.Event", b =>
@@ -78,7 +78,7 @@ namespace EventProject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("events", (string)null);
                 });
 
             modelBuilder.Entity("EventProject.Models.Booking", b =>

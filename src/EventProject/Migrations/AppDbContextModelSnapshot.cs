@@ -44,7 +44,7 @@ namespace EventProject.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("bookings", (string)null);
                 });
 
             modelBuilder.Entity("EventProject.Models.Event", b =>
@@ -75,7 +75,7 @@ namespace EventProject.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("events", (string)null);
                 });
 
             modelBuilder.Entity("EventProject.Models.Booking", b =>

@@ -59,7 +59,8 @@ dotnet ef migrations remove
 2. Перейдите в папку решения EventProject
 3. Выполните команду `dotnet restore` - установка нужных пакетов для проектов в рамках решения
 4. Выполните команду `dotnet build src/EventProject/EventProject.csproj` - сборка проекта EventProject
-5. Выполните команду `dotnet run --project src/EventProject/EventProject.csproj` - запуск проекта EventProject.
+5. Установите базу данных PostgreSQL, к которой будет подключаться приложение
+6. Выполните команду `dotnet run --project src/EventProject/EventProject.csproj` - запуск проекта EventProject.
 
 ## Тестовая среда
 
