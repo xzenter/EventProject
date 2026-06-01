@@ -1,4 +1,4 @@
-using EventProject.Presentation.Models;
+using EventProject.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,4 +1,4 @@
-using EventProject.Presentation.Models;
+using EventProject.Domain.Entities;
 
 namespace EventProject.Presentation.Dto.Response;
 

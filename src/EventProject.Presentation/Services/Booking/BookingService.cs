@@ -1,5 +1,5 @@
-using EventProject.Presentation.Exceptions;
-using EventProject.Presentation.Models;
+using EventProject.Domain.Entities;
+using EventProject.Domain.Exceptions;
 using EventProject.Presentation.Repository.Booking;
 using EventProject.Presentation.Repository.Event;
 
@@ -29,7 +29,7 @@ public class BookingService : IBookingService
             if (!existingEvent.TryReserveSeats())
                 throw new NoAvailableSeatsException("No available seats for this event");
 
-            var booking = new Models.Booking
+            var booking = new Domain.Entities.Booking
             {
                 Id = Guid.NewGuid(),
                 EventId = eventId,

@@ -1,4 +1,4 @@
-namespace EventProject.Presentation.Exceptions;
+namespace EventProject.Domain.Exceptions;
 
 public class NotFoundException : Exception
 {

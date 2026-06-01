@@ -1,6 +1,6 @@
-﻿using EventProject.Presentation.Dto.Query;
-using EventProject.Presentation.Exceptions;
-using EventProject.Presentation.Models;
+﻿using EventProject.Domain.Entities;
+using EventProject.Domain.Exceptions;
+using EventProject.Presentation.Dto.Query;
 using EventProject.Presentation.Repository.Event;
 using EventProject.Presentation.Services.Event;
 using FluentAssertions;

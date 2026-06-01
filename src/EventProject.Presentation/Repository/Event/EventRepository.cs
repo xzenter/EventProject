@@ -12,12 +12,12 @@ public class EventRepository : IEventRepository
         _appDbContext = appDbContext;
     }
 
-    public async Task<Models.Event?> GetById(Guid id, CancellationToken ct = default)
+    public async Task<Domain.Entities.Event?> GetById(Guid id, CancellationToken ct = default)
     {
         return await _appDbContext.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
-    public async Task<IEnumerable<Models.Event>> GetByFilter(string? title, DateTime? from, DateTime? to,
+    public async Task<IEnumerable<Domain.Entities.Event>> GetByFilter(string? title, DateTime? from, DateTime? to,
         CancellationToken ct)
     {
         var query = _appDbContext.Events.AsNoTracking();
@@ -34,12 +34,12 @@ public class EventRepository : IEventRepository
         return await query.ToListAsync(ct);
     }
 
-    public async Task Add(Models.Event entity, CancellationToken ct = default)
+    public async Task Add(Domain.Entities.Event entity, CancellationToken ct = default)
     {
         await _appDbContext.Events.AddAsync(entity, ct);
     }
 
-    public void Delete(Models.Event entity, CancellationToken ct = default)
+    public void Delete(Domain.Entities.Event entity, CancellationToken ct = default)
     {
         _appDbContext.Events.Remove(entity);
     }

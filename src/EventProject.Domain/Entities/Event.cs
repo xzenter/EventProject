@@ -1,4 +1,4 @@
-namespace EventProject.Presentation.Models;
+namespace EventProject.Domain.Entities;
 
 public class Event
 {

@@ -1,7 +1,7 @@
+using EventProject.Domain.Exceptions;
 using EventProject.Presentation.Dto;
 using EventProject.Presentation.Dto.Query;
 using EventProject.Presentation.Dto.Response;
-using EventProject.Presentation.Exceptions;
 using EventProject.Presentation.Repository.Event;
 
 namespace EventProject.Presentation.Services.Event;
@@ -81,7 +81,7 @@ public class EventService : IEventService
             throw new BadRequestException("Дата начала события не может быть позже даты окончания");
         }
 
-        var newEvent = new Models.Event
+        var newEvent = new Domain.Entities.Event
         {
             Id = Guid.NewGuid(),
             Title = query.Title,

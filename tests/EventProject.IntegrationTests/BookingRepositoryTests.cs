@@ -1,4 +1,4 @@
-using EventProject.Presentation.Models;
+using EventProject.Domain.Entities;
 using EventProject.Presentation.Repository.Booking;
 using Microsoft.EntityFrameworkCore;
 

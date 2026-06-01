@@ -1,4 +1,4 @@
-using EventProject.Presentation.Models;
+using EventProject.Domain.Entities;
 using EventProject.Presentation.Services.Booking;
 using Microsoft.AspNetCore.Mvc;
 
