@@ -1,9 +1,9 @@
+using EventProject.Application.Abstractions.Repositories;
+using EventProject.Application.Abstractions.Services;
 using EventProject.Domain.Entities;
 using EventProject.Domain.Exceptions;
-using EventProject.Presentation.Repository.Booking;
-using EventProject.Presentation.Repository.Event;
 
-namespace EventProject.Presentation.Services.Booking;
+namespace EventProject.Application.Booking;
 
 public class BookingService : IBookingService
 {

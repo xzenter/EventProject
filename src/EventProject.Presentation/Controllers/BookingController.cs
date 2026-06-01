@@ -1,5 +1,5 @@
+using EventProject.Application.Abstractions.Services;
 using EventProject.Domain.Entities;
-using EventProject.Presentation.Services.Booking;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventProject.Presentation.Controllers;

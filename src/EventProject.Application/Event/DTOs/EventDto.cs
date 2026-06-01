@@ -1,4 +1,4 @@
-namespace EventProject.Presentation.Dto.Response;
+namespace EventProject.Application.Event.DTOs;
 
 /// <summary>
 /// Объект, описывающий событие.

@@ -1,4 +1,4 @@
-namespace EventProject.Presentation.Repository.Event;
+namespace EventProject.Application.Abstractions.Repositories;
 
 public interface IEventRepository
 {

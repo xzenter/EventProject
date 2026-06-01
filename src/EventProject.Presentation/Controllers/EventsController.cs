@@ -1,7 +1,5 @@
-using EventProject.Presentation.Dto.Query;
-using EventProject.Presentation.Dto.Response;
-using EventProject.Presentation.Services.Event;
-using EventProject.Presentation.Services.Booking;
+using EventProject.Application.Abstractions.Services;
+using EventProject.Application.Event.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventProject.Presentation.Controllers;

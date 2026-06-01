@@ -1,6 +1,6 @@
 using EventProject.Domain.Entities;
 
-namespace EventProject.Presentation.Repository.Booking;
+namespace EventProject.Application.Abstractions.Repositories;
 
 public interface IBookingRepository
 {

@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EventProject.Presentation.Dto.Query;
+namespace EventProject.Application.Event.DTOs;
 
 /// <summary>
-/// Параметры для обновления события.
+/// Параметры для создания события.
 /// </summary>
-public class EventForUpdateQuery : IValidatableObject
+public class EventForCreationQuery : IValidatableObject
 {
     /// <summary>
     /// Название события.
@@ -30,11 +30,20 @@ public class EventForUpdateQuery : IValidatableObject
     [Required]
     public required DateTime EndAt { get; set; }
 
+    /// <summary>
+    /// Общее количество мест на событие.
+    /// </summary>
+    public int TotalSeats { get; init; }
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (StartAt > EndAt)
         {
             yield return new ValidationResult("StartAt должна быть меньше EndAt");
         }
+
+        if (TotalSeats <= 0)
+            yield return new ValidationResult(
+                "Общее количество мест должно быть положительным числом");
     }
 }

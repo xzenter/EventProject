@@ -1,3 +1,4 @@
+using EventProject.Application.Abstractions.Repositories;
 using EventProject.Domain.Entities;
 using EventProject.Presentation.DataAccess;
 using Microsoft.EntityFrameworkCore;

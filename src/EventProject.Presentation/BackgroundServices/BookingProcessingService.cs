@@ -1,6 +1,5 @@
+using EventProject.Application.Abstractions.Repositories;
 using EventProject.Domain.Entities;
-using EventProject.Presentation.Repository.Booking;
-using EventProject.Presentation.Repository.Event;
 
 namespace EventProject.Presentation.BackgroundServices;
 
@@ -57,7 +56,7 @@ public class BookingProcessingService : BackgroundService
         // имитация внешнего вызова
         await Task.Delay(1000, stoppingToken);
 
-        Event? @event = null;
+        Domain.Entities.Event? @event = null;
         var booking = await bookingRepository.GetById(bookingId, stoppingToken);
 
         try

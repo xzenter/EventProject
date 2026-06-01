@@ -1,4 +1,4 @@
-namespace EventProject.Presentation.Dto;
+namespace EventProject.Application;
 
 /// <summary>
 /// Объект, содержащий результаты пагинации.

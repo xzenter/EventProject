@@ -1,10 +1,9 @@
+using EventProject.Application.Abstractions.Repositories;
+using EventProject.Application.Abstractions.Services;
+using EventProject.Application.Event.DTOs;
 using EventProject.Domain.Exceptions;
-using EventProject.Presentation.Dto;
-using EventProject.Presentation.Dto.Query;
-using EventProject.Presentation.Dto.Response;
-using EventProject.Presentation.Repository.Event;
 
-namespace EventProject.Presentation.Services.Event;
+namespace EventProject.Application.Event;
 
 public class EventService : IEventService
 {

@@ -1,8 +1,9 @@
-﻿using EventProject.Domain.Entities;
+﻿using EventProject.Application.Abstractions.Repositories;
+using EventProject.Application.Booking;
+using EventProject.Domain.Entities;
 using EventProject.Domain.Exceptions;
 using EventProject.Presentation.Repository.Booking;
 using EventProject.Presentation.Repository.Event;
-using EventProject.Presentation.Services.Booking;
 using FluentAssertions;
 using Moq;
 

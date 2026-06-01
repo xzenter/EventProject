@@ -1,6 +1,6 @@
 using EventProject.Domain.Entities;
 
-namespace EventProject.Presentation.Services.Booking;
+namespace EventProject.Application.Abstractions.Services;
 
 public interface IBookingService
 {

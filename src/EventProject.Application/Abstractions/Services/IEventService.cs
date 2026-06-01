@@ -1,8 +1,6 @@
-using EventProject.Presentation.Dto;
-using EventProject.Presentation.Dto.Query;
-using EventProject.Presentation.Dto.Response;
+using EventProject.Application.Event.DTOs;
 
-namespace EventProject.Presentation.Services.Event;
+namespace EventProject.Application.Abstractions.Services;
 
 public interface IEventService
 {

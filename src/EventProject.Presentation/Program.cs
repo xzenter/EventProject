@@ -1,12 +1,14 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using EventProject.Application.Abstractions.Repositories;
+using EventProject.Application.Abstractions.Services;
+using EventProject.Application.Booking;
+using EventProject.Application.Event;
 using EventProject.Presentation.BackgroundServices;
 using EventProject.Presentation.DataAccess;
 using EventProject.Presentation.Middlewares;
 using EventProject.Presentation.Repository.Booking;
 using EventProject.Presentation.Repository.Event;
-using EventProject.Presentation.Services.Booking;
-using EventProject.Presentation.Services.Event;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

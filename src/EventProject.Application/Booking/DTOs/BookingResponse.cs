@@ -1,6 +1,6 @@
 using EventProject.Domain.Entities;
 
-namespace EventProject.Presentation.Dto.Response;
+namespace EventProject.Application.Booking.DTOs;
 
 /// <summary>
 /// Объект бронирования.
