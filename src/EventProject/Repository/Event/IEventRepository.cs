@@ -2,9 +2,13 @@ namespace EventProject.Repository.Event;
 
 public interface IEventRepository
 {
-    Models.Event? GetById(Guid id);
-    IEnumerable<Models.Event> GetAll();
-    Models.Event Add(Models.Event entity);
-    Models.Event Update(Guid id, Models.Event entity);
-    void Delete(Guid id);
+    Task<Models.Event?> GetById(Guid id, CancellationToken ct = default);
+
+    Task<IEnumerable<Models.Event>> GetByFilter(string? title, DateTime? from, DateTime? to, CancellationToken ct);
+
+    Task Add(Models.Event entity, CancellationToken ct = default);
+
+    void Delete(Models.Event entity, CancellationToken ct = default);
+
+    Task<int> SaveChanges(CancellationToken ct = default);
 }

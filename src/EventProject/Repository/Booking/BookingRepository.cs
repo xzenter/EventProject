@@ -1,41 +1,40 @@
+using EventProject.DataAccess;
 using EventProject.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.Repository.Booking;
 
 public class BookingRepository : IBookingRepository
 {
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, Models.Booking> _booking = [];
+    private readonly AppDbContext _appDbContext;
 
-    public Models.Booking? GetById(Guid id)
+    public BookingRepository(AppDbContext appDbContext)
     {
-        _booking.TryGetValue(id, out var booking);
-        return booking;
+        _appDbContext = appDbContext;
     }
 
-    public IEnumerable<Models.Booking> GetByStatus(BookingStatus status)
+    public async Task<Models.Booking?> GetById(Guid id, CancellationToken ct = default)
     {
-        return _booking.Values.Where(x => x.Status == status);
+        return await _appDbContext.Bookings
+            .FirstOrDefaultAsync(b => b.Id == id, ct);
     }
 
-    public Models.Booking Add(Models.Booking entity)
+    public async Task<IEnumerable<Models.Booking>> GetByStatus(BookingStatus status, CancellationToken ct = default)
     {
-        _booking[entity.Id] = entity;
-        return entity;
+        return await _appDbContext.Bookings
+            .Where(b => b.Status == status)
+            .ToListAsync(ct);
     }
 
-    public Models.Booking Update(Guid id, Models.Booking entity)
+    public async Task Add(Models.Booking entity, CancellationToken ct = default)
     {
-        if (!_booking.TryGetValue(id, out _))
-        {
-            throw new KeyNotFoundException($"Booking with id {id} was not found.");
-        }
-
-        _booking[id] = entity;
-        return entity;
+        await _appDbContext.Bookings
+            .AddAsync(entity, ct);
     }
 
-    public void Delete(Guid id)
+    public async Task<int> SaveChanges(CancellationToken ct = default)
     {
-        _booking.TryRemove(id, out _);
+        return await _appDbContext
+            .SaveChangesAsync(ct);
     }
 }

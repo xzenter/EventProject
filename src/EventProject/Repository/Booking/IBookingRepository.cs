@@ -4,9 +4,11 @@ namespace EventProject.Repository.Booking;
 
 public interface IBookingRepository
 {
-    Models.Booking? GetById(Guid id);
-    IEnumerable<Models.Booking> GetByStatus(BookingStatus status);
-    Models.Booking Add(Models.Booking entity);
-    Models.Booking Update(Guid id, Models.Booking entity);
-    void Delete(Guid id);
+    Task<Models.Booking?> GetById(Guid id, CancellationToken ct = default);
+
+    Task<IEnumerable<Models.Booking>> GetByStatus(BookingStatus status, CancellationToken ct = default);
+
+    Task Add(Models.Booking entity, CancellationToken ct = default);
+
+    Task<int> SaveChanges(CancellationToken ct = default);
 }
