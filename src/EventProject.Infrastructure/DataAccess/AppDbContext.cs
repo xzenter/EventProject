@@ -1,7 +1,7 @@
 using EventProject.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventProject.Presentation.DataAccess;
+namespace EventProject.Infrastructure.DataAccess;
 
 public class AppDbContext : DbContext
 {

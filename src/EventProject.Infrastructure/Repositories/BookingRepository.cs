@@ -1,9 +1,9 @@
 using EventProject.Application.Abstractions.Repositories;
 using EventProject.Domain.Entities;
-using EventProject.Presentation.DataAccess;
+using EventProject.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventProject.Presentation.Repository.Booking;
+namespace EventProject.Infrastructure.Repositories;
 
 public class BookingRepository : IBookingRepository
 {

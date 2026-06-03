@@ -2,7 +2,7 @@ using EventProject.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventProject.Presentation.DataAccess.Configurations;
+namespace EventProject.Infrastructure.DataAccess.Configurations;
 
 public class EventConfiguration : IEntityTypeConfiguration<Event>
 {

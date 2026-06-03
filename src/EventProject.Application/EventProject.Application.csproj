@@ -7,7 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EventProject.Domain\EventProject.Domain.csproj" />
+        <ProjectReference Include="..\EventProject.Domain\EventProject.Domain.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0"/>
     </ItemGroup>
 
 </Project>

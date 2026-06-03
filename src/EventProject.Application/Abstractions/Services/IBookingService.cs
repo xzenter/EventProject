@@ -1,3 +1,4 @@
+using EventProject.Application.Booking.DTOs;
 using EventProject.Domain.Entities;
 
 namespace EventProject.Application.Abstractions.Services;

@@ -1,8 +1,8 @@
 using EventProject.Application.Abstractions.Repositories;
-using EventProject.Presentation.DataAccess;
+using EventProject.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventProject.Presentation.Repository.Event;
+namespace EventProject.Infrastructure.Repositories;
 
 public class EventRepository : IEventRepository
 {

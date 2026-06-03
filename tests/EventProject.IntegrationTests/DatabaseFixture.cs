@@ -1,4 +1,4 @@
-﻿using EventProject.Presentation.DataAccess;
+﻿using EventProject.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 

@@ -1,38 +1,18 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
-using EventProject.Application.Abstractions.Repositories;
-using EventProject.Application.Abstractions.Services;
-using EventProject.Application.Booking;
-using EventProject.Application.Event;
-using EventProject.Presentation.BackgroundServices;
-using EventProject.Presentation.DataAccess;
+using EventProject.Application.Extensions;
+using EventProject.Infrastructure.Extensions;
 using EventProject.Presentation.Middlewares;
-using EventProject.Presentation.Repository.Booking;
-using EventProject.Presentation.Repository.Event;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseNpgsql(connectionString);
-
-#if DEBUG
-    options
-        .LogTo(Console.WriteLine, LogLevel.Information)
-        .EnableDetailedErrors();
-#endif
-});
-
 // Add services to the container.
-builder.Services.AddScoped<IEventRepository, EventRepository>();
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddHostedService<BookingProcessingService>();
+
+builder.Services.AddRepositories(connectionString);
+builder.Services.AddServices();
 
 builder.Services
     .AddControllers()
@@ -53,11 +33,7 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
+app.Services.MigrateDb();
 
 app.UseExceptionHandler();
 
@@ -70,9 +46,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

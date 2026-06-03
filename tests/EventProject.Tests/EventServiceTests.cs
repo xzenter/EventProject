@@ -3,7 +3,6 @@ using EventProject.Application.Event;
 using EventProject.Application.Event.DTOs;
 using EventProject.Domain.Entities;
 using EventProject.Domain.Exceptions;
-using EventProject.Presentation.Repository.Event;
 using FluentAssertions;
 using Moq;
 

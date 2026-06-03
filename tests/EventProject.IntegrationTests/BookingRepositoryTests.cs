@@ -1,5 +1,5 @@
 using EventProject.Domain.Entities;
-using EventProject.Presentation.Repository.Booking;
+using EventProject.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.IntegrationTests;

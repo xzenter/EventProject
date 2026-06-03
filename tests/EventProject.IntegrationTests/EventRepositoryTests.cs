@@ -1,4 +1,5 @@
-using EventProject.Presentation.Repository.Event;
+using EventProject.Domain.Entities;
+using EventProject.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.IntegrationTests;
@@ -162,9 +163,9 @@ public class EventRepositoryTests
         Assert.Null(deleted);
     }
 
-    private static Models.Event CreateEvent(string title, DateTime startAt)
+    private static Event CreateEvent(string title, DateTime startAt)
     {
-        return new Models.Event
+        return new Event
         {
             Id = Guid.NewGuid(),
             Title = title,

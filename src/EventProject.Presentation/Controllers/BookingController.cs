@@ -1,5 +1,5 @@
 using EventProject.Application.Abstractions.Services;
-using EventProject.Domain.Entities;
+using EventProject.Application.Booking.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventProject.Presentation.Controllers;
@@ -16,10 +16,10 @@ public class BookingController(
     /// <param name="id">Идентификатор бронирования.</param>
     /// <response code="200">Бронирование получено.</response>
     /// <response code="404">Бронирование не найдено.</response>
-    [ProducesResponseType(typeof(Booking), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BookingInfo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("/bookings/{id:guid}")]
-    public async Task<ActionResult<Booking>> GetBooking(Guid id, CancellationToken ct = default)
+    public async Task<ActionResult<BookingInfo>> GetBooking(Guid id, CancellationToken ct = default)
     {
         var bookingInfo = await bookingService.GetBookingById(id, ct);
 

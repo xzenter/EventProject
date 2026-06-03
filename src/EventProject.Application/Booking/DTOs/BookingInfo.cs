@@ -1,4 +1,6 @@
-namespace EventProject.Domain.Entities;
+using EventProject.Domain.Entities;
+
+namespace EventProject.Application.Booking.DTOs;
 
 public class BookingInfo
 {
