@@ -2,12 +2,26 @@
 
 EventProject - учебный проект на базе ASP.NET (.NET 10), демонстрирующий работу с событиями.
 
+## Архитектура проекта
+Проект построен по принципам Clean Architecture и разделён на несколько слоёв
+
+каталог src/
+- EventProject.Presentation   - Точка входа (Web API)
+- EventProject.Application    - Бизнес-логика приложения
+- EventProject.Infrastructure - Работа с БД и внешними сервисами
+- EventProject.Domain         - Доменные сущности и контракты
+
+каталог tests/
+- EventProject.Application.Tests    - Unit-тесты бизнес слоя
+- EventProject.Infrastructure.Tests - Интеграционные тесты инфраструктуры
+- EventProject.Domain.Tests         - Unit-тесты доменных сущностей
+
 ## Требования
 
 Для запуска приложения необходимо:
 
 - Установленный PostgreSQL (версии 12+ рекомендуется)
-- .NET SDK (рекомендуется .NET 8 и выше)
+- .NET SDK (рекомендуется .NET 10 и выше)
 - Docker (для запуска интеграционных тестов)
 
 ## Настройка подключения к базе данных
@@ -26,20 +40,23 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 
 ## Создание новой миграции
 
+Находясь в проекте **EventProject.Presentation**, выполните команду:
 ``` bash
-dotnet ef migrations add MigrationName
+dotnet ef migrations add InitialCreate --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
 ```
 
 ## Применение миграций к базе данных
 
+Находясь в проекте **EventProject.Presentation**, выполните команду:
 ``` bash
-dotnet ef database update
+dotnet ef database update --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
 
 ## Удаление последней миграции
 
+Находясь в проекте **EventProject.Presentation**, выполните команду:
 ``` bash
-dotnet ef migrations remove
+dotnet ef migrations remove --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
 
 ## Описание
@@ -58,9 +75,9 @@ dotnet ef migrations remove
 1. Скачайте репозиторий
 2. Перейдите в папку решения EventProject
 3. Выполните команду `dotnet restore` - установка нужных пакетов для проектов в рамках решения
-4. Выполните команду `dotnet build src/EventProject/EventProject.csproj` - сборка проекта EventProject
-5. Установите базу данных PostgreSQL, к которой будет подключаться приложение
-6. Выполните команду `dotnet run --project src/EventProject/EventProject.csproj` - запуск проекта EventProject.
+4. Выполните команду `dotnet build src/EventProject.Presentation/EventProject.Presentation.csproj` - сборка проекта EventProject.Presentation
+5. Установите базу данных PostgreSQL, к которой будет подключаться приложение, и выполните миграции
+6. Выполните команду `dotnet run --project src/EventProject.Presentation/EventProject.Presentation.csproj` - запуск проекта EventProject.
 
 ## Тестовая среда
 
