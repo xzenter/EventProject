@@ -9,7 +9,7 @@ namespace EventProject.Infrastructure.Extensions;
 
 public static class ServiceExtensions
 {
-    public static void AddInfrastuctureServices(this IServiceCollection services, string connectionString)
+    public static void AddInfrastructureServices(this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<AppDbContext>(options =>
         {

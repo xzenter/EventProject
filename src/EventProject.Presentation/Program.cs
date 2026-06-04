@@ -9,9 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
-// Add services to the container.
-
-builder.Services.AddInfrastuctureServices(connectionString);
+builder.Services.AddInfrastructureServices(connectionString);
 builder.Services.AddApplicationServices();
 
 builder.Services

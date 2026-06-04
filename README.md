@@ -26,20 +26,23 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 
 ## Создание новой миграции
 
+Находясь в проекте **EventProject.Presentation**, выполните команду:
 ``` bash
-dotnet ef migrations add MigrationName
+dotnet ef migrations add InitialCreate --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
 ```
 
 ## Применение миграций к базе данных
 
+Находясь в проекте **EventProject.Presentation**, выполните команду:
 ``` bash
-dotnet ef database update
+dotnet ef database update --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
 
 ## Удаление последней миграции
 
+Находясь в проекте **EventProject.Presentation**, выполните команду:
 ``` bash
-dotnet ef migrations remove
+dotnet ef migrations remove --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
 
 ## Описание
