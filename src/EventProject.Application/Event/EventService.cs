@@ -1,5 +1,6 @@
 using EventProject.Application.Abstractions.Repositories;
 using EventProject.Application.Abstractions.Services;
+using EventProject.Application.DTOs;
 using EventProject.Application.Event.DTOs;
 using EventProject.Domain.Exceptions;
 

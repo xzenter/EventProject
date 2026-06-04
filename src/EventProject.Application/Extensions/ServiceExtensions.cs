@@ -8,7 +8,7 @@ namespace EventProject.Application.Extensions;
 
 public static class ServiceExtensions
 {
-    public static void AddServices(this IServiceCollection services)
+    public static void AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<IBookingService, BookingService>();

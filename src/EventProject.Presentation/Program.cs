@@ -11,8 +11,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // Add services to the container.
 
-builder.Services.AddRepositories(connectionString);
-builder.Services.AddServices();
+builder.Services.AddInfrastuctureServices(connectionString);
+builder.Services.AddApplicationServices();
 
 builder.Services
     .AddControllers()
@@ -33,7 +33,7 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-app.Services.MigrateDb();
+app.Services.ConfigureInfrastructure();
 
 app.UseExceptionHandler();
 

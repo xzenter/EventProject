@@ -1,3 +1,4 @@
+using EventProject.Application.DTOs;
 using EventProject.Application.Event.DTOs;
 
 namespace EventProject.Application.Abstractions.Services;

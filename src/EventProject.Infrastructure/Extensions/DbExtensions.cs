@@ -6,7 +6,7 @@ namespace EventProject.Infrastructure.Extensions;
 
 public static class DbExtensions
 {
-    public static void MigrateDb(this IServiceProvider serviceProvider)
+    public static void ConfigureInfrastructure(this IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
