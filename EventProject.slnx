@@ -10,7 +10,8 @@
     <Project Path="src/EventProject.Presentation/EventProject.Presentation.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/EventProject.IntegrationTests/EventProject.IntegrationTests.csproj" />
-    <Project Path="tests/EventProject.Tests/EventProject.Tests.csproj" Id="11eeb38d-8755-46cb-9cbc-3acc11e7e76a" />
+    <Project Path="tests/EventProject.Application.Tests/EventProject.Application.Tests.csproj" Id="11eeb38d-8755-46cb-9cbc-3acc11e7e76a" />
+    <Project Path="tests/EventProject.Domain.Tests/EventProject.Domain.Tests.csproj" />
+    <Project Path="tests/EventProject.Infrastructure.Tests/EventProject.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

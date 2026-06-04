@@ -6,7 +6,7 @@ using EventProject.Domain.Exceptions;
 using FluentAssertions;
 using Moq;
 
-namespace EventProject.Tests;
+namespace EventProject.Application.Tests;
 
 public class BookingServiceTests
 {
@@ -30,7 +30,7 @@ public class BookingServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(new Event
+            .ReturnsAsync(new Domain.Entities.Event
             {
                 Id = eventId,
                 Title = "Test Event",
@@ -59,7 +59,7 @@ public class BookingServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(new Event
+            .ReturnsAsync(new Domain.Entities.Event
             {
                 Id = eventId,
                 Title = "Test Event",
@@ -88,7 +88,7 @@ public class BookingServiceTests
 
         _bookingRepositoryMock
             .Setup(x => x.GetById(bookingId))
-            .ReturnsAsync(new Booking
+            .ReturnsAsync(new Domain.Entities.Booking
             {
                 Id = bookingId,
                 EventId = eventId,
@@ -117,7 +117,7 @@ public class BookingServiceTests
 
         _bookingRepositoryMock
             .SetupSequence(x => x.GetById(bookingId))
-            .ReturnsAsync(new Booking
+            .ReturnsAsync(new Domain.Entities.Booking
             {
                 Id = bookingId,
                 EventId = eventId,
@@ -125,7 +125,7 @@ public class BookingServiceTests
                 CreatedAt = DateTime.Now,
                 Event = null!,
             })
-            .ReturnsAsync(new Booking
+            .ReturnsAsync(new Domain.Entities.Booking
             {
                 Id = bookingId,
                 EventId = eventId,
@@ -155,7 +155,7 @@ public class BookingServiceTests
         var eventId = Guid.NewGuid();
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync((Event?)null);
+            .ReturnsAsync((Domain.Entities.Event?)null);
 
         // Act
         var action = () => _bookingService.CreateBooking(eventId);
@@ -172,7 +172,7 @@ public class BookingServiceTests
         var eventId = Guid.NewGuid();
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync((Event?)null);
+            .ReturnsAsync((Domain.Entities.Event?)null);
 
         // Act
         var action = () => _bookingService.CreateBooking(eventId);
@@ -202,7 +202,7 @@ public class BookingServiceTests
         // Arrange
         var eventId = Guid.NewGuid();
         const int initialAvailableSeats = 5;
-        var eventEntity = new Event
+        var eventEntity = new Domain.Entities.Event
         {
             Id = eventId,
             Title = "Test Event",
@@ -234,7 +234,7 @@ public class BookingServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(new Event
+            .ReturnsAsync(new Domain.Entities.Event
             {
                 Id = eventId,
                 Title = "Test Event",
@@ -274,7 +274,7 @@ public class BookingServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(new Event
+            .ReturnsAsync(new Domain.Entities.Event
             {
                 Id = eventId,
                 Title = "Test Event",
@@ -301,7 +301,7 @@ public class BookingServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(new Event
+            .ReturnsAsync(new Domain.Entities.Event
             {
                 Id = eventId,
                 Title = "Test Event",
@@ -324,7 +324,7 @@ public class BookingServiceTests
     public void Confirm_Should_Set_Status_To_Confirmed_And_ProcessedAt_To_NonNull()
     {
         // Arrange
-        var booking = new Booking
+        var booking = new Domain.Entities.Booking
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
@@ -347,7 +347,7 @@ public class BookingServiceTests
     public void Reject_Should_Set_Status_To_Rejected_And_ProcessedAt_To_NonNull()
     {
         // Arrange
-        var booking = new Booking
+        var booking = new Domain.Entities.Booking
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
@@ -372,7 +372,7 @@ public class BookingServiceTests
         // Arrange
         var eventId = Guid.NewGuid();
 
-        var event1 = new Event
+        var event1 = new Domain.Entities.Event
         {
             Id = eventId,
             Title = "TestEvent",
@@ -390,7 +390,7 @@ public class BookingServiceTests
             .ReturnsAsync(event1);
         bookingRepositoryMock
             .Setup(b => b.GetById(It.IsAny<Guid>()))
-            .ReturnsAsync((Booking?)null);
+            .ReturnsAsync((Domain.Entities.Booking?)null);
 
         var bookingService = new BookingService(bookingRepositoryMock.Object, eventRepositoryMock.Object);
 
@@ -430,7 +430,7 @@ public class BookingServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(new Event
+            .ReturnsAsync(new Domain.Entities.Event
             {
                 Id = eventId,
                 Title = "Test Event",

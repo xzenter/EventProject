@@ -1,6 +1,6 @@
 using EventProject.Domain.Entities;
 
-namespace EventProject.Tests;
+namespace EventProject.Domain.Tests;
 
 public class BookingTests
 {

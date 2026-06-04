@@ -6,7 +6,7 @@ using EventProject.Domain.Exceptions;
 using FluentAssertions;
 using Moq;
 
-namespace EventProject.Tests;
+namespace EventProject.Application.Tests;
 
 public class EventServiceTests
 {
@@ -81,7 +81,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsEvents()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -120,7 +120,7 @@ public class EventServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-        var eventEntity = new Event
+        var eventEntity = new Domain.Entities.Event
         {
             Id = eventId,
             Title = "Test Event",
@@ -155,7 +155,7 @@ public class EventServiceTests
         var eventId = Guid.NewGuid();
         var eventForCreation = _eventsForCreation[0];
     
-        var eventEntity = new Event
+        var eventEntity = new Domain.Entities.Event
         {
             Id = eventId,
             Title = eventForCreation.Title,
@@ -201,7 +201,7 @@ public class EventServiceTests
         // Arrange
         var eventId = Guid.NewGuid();
 
-        var eventEntity = new Event
+        var eventEntity = new Domain.Entities.Event
         {
             Id = eventId,
             Title = "Test Event",
@@ -233,7 +233,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsFilteredEvents()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -272,7 +272,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsFilteredEventsByDates()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -320,7 +320,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsPaginatedResult(int page, int pageSize, int expectedCount)
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -357,7 +357,7 @@ public class EventServiceTests
     public async Task GetEvents_ShouldReturnsFilteredAndPaginatedResult()
     {
         // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Event
+        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
         {
             Id = Guid.NewGuid(),
             Title = e.Title,
@@ -418,7 +418,7 @@ public class EventServiceTests
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
-            .ReturnsAsync((Event?)null);
+            .ReturnsAsync((Domain.Entities.Event?)null);
 
         // Act
         var exception = () => _eventService.UpdateEvent(eventId, newDto);
@@ -452,7 +452,7 @@ public class EventServiceTests
         var eventId = Guid.NewGuid();
         var eventForCreation = _eventsForCreation[0];
     
-        var eventEntity = new Event
+        var eventEntity = new Domain.Entities.Event
         {
             Id = eventId,
             Title = eventForCreation.Title,

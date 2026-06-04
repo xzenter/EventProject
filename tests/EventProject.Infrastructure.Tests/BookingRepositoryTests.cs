@@ -2,7 +2,7 @@ using EventProject.Domain.Entities;
 using EventProject.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventProject.IntegrationTests;
+namespace EventProject.Infrastructure.Tests;
 
 [Collection("Database collection")]
 public class BookingRepositoryTests
