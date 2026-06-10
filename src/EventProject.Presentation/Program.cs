@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using EventProject.Application.Extensions;
 using EventProject.Infrastructure.Extensions;
+using EventProject.Presentation.BackgroundServices;
 using EventProject.Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddInfrastructureServices(connectionString);
 builder.Services.AddApplicationServices();
+builder.Services.AddHostedService<BookingProcessingService>();
 
 builder.Services
     .AddControllers()
