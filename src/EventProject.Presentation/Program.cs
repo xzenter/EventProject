@@ -4,6 +4,7 @@ using EventProject.Application.Extensions;
 using EventProject.Infrastructure.Extensions;
 using EventProject.Presentation.BackgroundServices;
 using EventProject.Presentation.Middlewares;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,30 @@ builder.Services.AddSwaggerGen(options =>
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
+    
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Type = SecuritySchemeType.Http,
+        In = ParameterLocation.Header,
+    });
+
+    options.AddSecurityRequirement(document =>
+    {
+        var securityRequirement = new OpenApiSecurityRequirement();
+        var securitySchemeReference = new OpenApiSecuritySchemeReference("Bearer", document);
+
+        securityRequirement.Add(securitySchemeReference, new List<string>());
+
+        return securityRequirement;
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
