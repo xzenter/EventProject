@@ -1,4 +1,3 @@
-using EventProject.Domain.Entities;
 using EventProject.Domain.Enums;
 
 namespace EventProject.Application.Booking.DTOs;

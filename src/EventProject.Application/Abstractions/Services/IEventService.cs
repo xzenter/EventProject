@@ -1,5 +1,5 @@
 using EventProject.Application.DTOs;
-using EventProject.Application.Event.DTOs;
+using EventProject.Application.Events.DTOs;
 
 namespace EventProject.Application.Abstractions.Services;
 

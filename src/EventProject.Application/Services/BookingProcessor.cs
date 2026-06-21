@@ -1,6 +1,5 @@
 using EventProject.Application.Abstractions.Repositories;
 using EventProject.Application.Abstractions.Services;
-using EventProject.Domain.Entities;
 using EventProject.Domain.Enums;
 using Microsoft.Extensions.Logging;
 

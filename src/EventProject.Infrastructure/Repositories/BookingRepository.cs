@@ -1,5 +1,4 @@
 using EventProject.Application.Abstractions.Repositories;
-using EventProject.Domain.Entities;
 using EventProject.Domain.Enums;
 using EventProject.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +20,8 @@ public class BookingRepository : IBookingRepository
             .FirstOrDefaultAsync(b => b.Id == id, ct);
     }
 
-    public async Task<IEnumerable<Domain.Entities.Booking>> GetByStatus(BookingStatus status, CancellationToken ct = default)
+    public async Task<IEnumerable<Domain.Entities.Booking>> GetByStatus(BookingStatus status,
+        CancellationToken ct = default)
     {
         return await _appDbContext.Bookings
             .Where(b => b.Status == status)
@@ -32,6 +32,14 @@ public class BookingRepository : IBookingRepository
     {
         await _appDbContext.Bookings
             .AddAsync(entity, ct);
+    }
+
+    public Task<int> GetActiveBookingsCount(Guid userId, CancellationToken ct = default)
+    {
+        return _appDbContext.Bookings
+            .CountAsync(
+                b => b.UserId == userId && (b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed),
+                ct);
     }
 
     public async Task<int> SaveChanges(CancellationToken ct = default)

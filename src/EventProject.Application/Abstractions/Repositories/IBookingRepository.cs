@@ -1,4 +1,3 @@
-using EventProject.Domain.Entities;
 using EventProject.Domain.Enums;
 
 namespace EventProject.Application.Abstractions.Repositories;
@@ -10,6 +9,8 @@ public interface IBookingRepository
     Task<IEnumerable<Domain.Entities.Booking>> GetByStatus(BookingStatus status, CancellationToken ct = default);
 
     Task Add(Domain.Entities.Booking entity, CancellationToken ct = default);
+
+    Task<int> GetActiveBookingsCount(Guid userId, CancellationToken ct = default);
 
     Task<int> SaveChanges(CancellationToken ct = default);
 }
