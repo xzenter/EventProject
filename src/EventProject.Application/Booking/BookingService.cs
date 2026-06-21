@@ -2,6 +2,7 @@ using EventProject.Application.Abstractions.Repositories;
 using EventProject.Application.Abstractions.Services;
 using EventProject.Application.Booking.DTOs;
 using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 using EventProject.Domain.Exceptions;
 
 namespace EventProject.Application.Booking;

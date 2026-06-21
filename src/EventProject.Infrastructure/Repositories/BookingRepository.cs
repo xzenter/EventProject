@@ -1,5 +1,6 @@
 using EventProject.Application.Abstractions.Repositories;
 using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 using EventProject.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
