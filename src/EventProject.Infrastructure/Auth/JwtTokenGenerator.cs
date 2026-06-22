@@ -26,17 +26,18 @@ namespace EventProject.Infrastructure.Auth
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret));
-
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
+            
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(_options.LifetimeMinutes),
-                signingCredentials: credentials);
+                signingCredentials: credentials
+            );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtSecurityTokenHandler()
+                .WriteToken(token);
         }
     }
 }

@@ -20,6 +20,12 @@ public class UserRepository : IUserRepository
             .AddAsync(user, ct);
     }
 
+    public async Task<User?> GetUser(Guid userId, CancellationToken ct)
+    {
+        return await _appDbContext.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId, ct);
+    }
+
     public async Task<User?> GetUserByLogin(string login, CancellationToken ct)
     {
         return await _appDbContext.Users

@@ -12,9 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EventProject.Infrastructure.Extensions;
+namespace EventProject.Infrastructure;
 
-public static class ServiceExtensions
+public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -43,24 +43,25 @@ public static class ServiceExtensions
 
         services.AddSingleton(jwtOptions);
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
             {
-                ValidateIssuer = true,
-                ValidIssuer = jwtOptions.Issuer,
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
 
-                ValidateAudience = true,
-                ValidAudience = jwtOptions.Audience,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
 
-                ValidateLifetime = true,
+                    ValidateLifetime = true,
 
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
 
-                ClockSkew = TimeSpan.Zero
-            };
-        });
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
 
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IPasswordHasher, Sha256PasswordHasher>();
@@ -68,5 +69,12 @@ public static class ServiceExtensions
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+    }
+
+    public static void DbMigrate(this IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
     }
 }
