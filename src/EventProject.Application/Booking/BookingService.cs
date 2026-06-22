@@ -1,7 +1,6 @@
 using EventProject.Application.Abstractions.Repositories;
 using EventProject.Application.Abstractions.Services;
 using EventProject.Application.Booking.DTOs;
-using EventProject.Application.Settings;
 using EventProject.Domain.Enums;
 using EventProject.Domain.Exceptions;
 using Microsoft.Extensions.Options;

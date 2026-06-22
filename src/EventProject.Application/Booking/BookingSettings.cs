@@ -1,4 +1,4 @@
-﻿namespace EventProject.Application.Settings;
+﻿namespace EventProject.Application.Booking;
 
 public sealed class BookingSettings
 {

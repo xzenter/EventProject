@@ -1,8 +1,8 @@
-﻿using EventProject.Application.User.DTOs;
+﻿using EventProject.Application.Auth.DTOs;
 
 namespace EventProject.Application.Abstractions.Services;
 
-public interface IUserService
+public interface IAuthService
 {
     Task RegisterUser(RegisterUserRequest request, CancellationToken ct = default);
 

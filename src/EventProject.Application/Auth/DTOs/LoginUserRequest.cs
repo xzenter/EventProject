@@ -1,5 +1,8 @@
-﻿namespace EventProject.Application.User.DTOs;
+﻿namespace EventProject.Application.Auth.DTOs;
 
+/// <summary>
+/// Параметры для авторизации пользователя.
+/// </summary>
 public record LoginUserRequest
 {
     /// <summary>
