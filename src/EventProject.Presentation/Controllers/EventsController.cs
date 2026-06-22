@@ -1,5 +1,6 @@
 using EventProject.Application.Abstractions.Services;
-using EventProject.Application.Event.DTOs;
+using EventProject.Application.Events.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventProject.Presentation.Controllers;
@@ -17,6 +18,7 @@ public class EventsController(
     /// <param name="query">Параметры для поиска событий.</param>
     /// <response code="200">Запрос обработан.</response>
     [ProducesResponseType(typeof(List<EventDto>), StatusCodes.Status200OK)]
+    [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<List<EventDto>>> GetEvents([FromQuery] SearchEventsQuery query,
         CancellationToken ct = default)
@@ -33,6 +35,7 @@ public class EventsController(
     /// <response code="404">Событие не найдено.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<EventDto>> GetEvent(Guid id, CancellationToken ct = default)
     {
@@ -46,6 +49,7 @@ public class EventsController(
     /// <param name="eventForCreationQuery">Параметры события.</param>
     /// <response code="201">Событие создано.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status201Created)]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateEvent(EventForCreationQuery eventForCreationQuery,
         CancellationToken ct = default)
@@ -63,6 +67,7 @@ public class EventsController(
     /// <response code="404">Событие для обновления не найдено.</response>
     [ProducesResponseType(typeof(EventDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateEvent(Guid id, EventForUpdateQuery eventForUpdateQuery,
         CancellationToken ct = default)
@@ -79,6 +84,7 @@ public class EventsController(
     /// <response code="404">Событие для удаления не найдено.</response>
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken ct = default)
     {
