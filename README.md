@@ -44,6 +44,12 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 ``` bash
 dotnet ef migrations add InitialCreate --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
 ```
+## Создание очередной миграции
+
+Находясь в проекте **EventProject.Presentation**, выполните команду:
+``` bash
+dotnet ef migrations add <MigrationName> --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
+```
 
 ## Применение миграций к базе данных
 
