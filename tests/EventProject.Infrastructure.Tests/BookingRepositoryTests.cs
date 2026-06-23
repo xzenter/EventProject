@@ -15,12 +15,12 @@ public class BookingRepositoryTests
     {
         _fixture = fixture;
     }
-    
+
     private async Task ResetDatabaseAsync()
     {
         await using var context = _fixture.CreateContext();
         await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE TABLE bookings, events RESTART IDENTITY CASCADE");
+            "TRUNCATE TABLE bookings, events, users RESTART IDENTITY CASCADE");
     }
 
     [Fact]
@@ -30,16 +30,28 @@ public class BookingRepositoryTests
         await ResetDatabaseAsync();
         await using var context = _fixture.CreateContext();
 
+        var userRepository = new UserRepository(context);
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            Login = "Test User",
+            PasswordHash = "abcd",
+            Role = Role.User
+        };
+
+        await userRepository.AddUser(user, CancellationToken.None);
+        await userRepository.SaveChanges(CancellationToken.None);
+
         var eventEntity = CreateEvent();
         await context.Events.AddAsync(eventEntity, CancellationToken.None);
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var repository = new BookingRepository(context);
-        var booking = CreateBooking(eventEntity, BookingStatus.Pending);
+        var bookingRepository = new BookingRepository(context);
+        var booking = CreateBooking(eventEntity, user, BookingStatus.Pending);
 
         // Act
-        await repository.Add(booking, CancellationToken.None);
-        await repository.SaveChanges(CancellationToken.None);
+        await bookingRepository.Add(booking, CancellationToken.None);
+        await bookingRepository.SaveChanges(CancellationToken.None);
 
         // Assert
         await using var verifyContext = _fixture.CreateContext();
@@ -59,8 +71,20 @@ public class BookingRepositoryTests
         await ResetDatabaseAsync();
         await using var context = _fixture.CreateContext();
 
+        var userRepository = new UserRepository(context);
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            Login = "Test User",
+            PasswordHash = "abcd",
+            Role = Role.User
+        };
+
+        await userRepository.AddUser(user, CancellationToken.None);
+        await userRepository.SaveChanges(CancellationToken.None);
+
         var eventEntity = CreateEvent();
-        var booking = CreateBooking(eventEntity, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(5));
+        var booking = CreateBooking(eventEntity, user, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(5));
 
         context.Events.Add(eventEntity);
         context.Bookings.Add(booking);
@@ -101,10 +125,23 @@ public class BookingRepositoryTests
         await ResetDatabaseAsync();
         await using var context = _fixture.CreateContext();
 
+        var userRepository = new UserRepository(context);
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            Login = "Test User",
+            PasswordHash = "abcd",
+            Role = Role.User
+        };
+
+        await userRepository.AddUser(user, CancellationToken.None);
+        await userRepository.SaveChanges(CancellationToken.None);
+
         var eventEntity = CreateEvent();
-        var confirmedBooking = CreateBooking(eventEntity, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(10));
-        var pendingBooking = CreateBooking(eventEntity, BookingStatus.Pending);
-        var rejectedBooking = CreateBooking(eventEntity, BookingStatus.Rejected, DateTime.UtcNow.AddMinutes(20));
+        var confirmedBooking =
+            CreateBooking(eventEntity, user, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(10));
+        var pendingBooking = CreateBooking(eventEntity, user, BookingStatus.Pending);
+        var rejectedBooking = CreateBooking(eventEntity, user, BookingStatus.Rejected, DateTime.UtcNow.AddMinutes(20));
 
         context.Events.Add(eventEntity);
         context.Bookings.AddRange(confirmedBooking, pendingBooking, rejectedBooking);
@@ -135,13 +172,14 @@ public class BookingRepositoryTests
         };
     }
 
-    private static Booking CreateBooking(Event eventEntity, BookingStatus status, DateTime? processedAt = null)
+    private static Booking CreateBooking(Event eventEntity, User user, BookingStatus status,
+        DateTime? processedAt = null)
     {
         return new Booking
         {
             Id = Guid.NewGuid(),
             EventId = eventEntity.Id,
-            UserId = Guid.NewGuid(),
+            UserId = user.UserId,
             Status = status,
             CreatedAt = DateTime.UtcNow,
             ProcessedAt = processedAt,

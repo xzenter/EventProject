@@ -19,7 +19,7 @@ public class EventRepositoryTests
     {
         await using var context = _fixture.CreateContext();
         await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE TABLE bookings, events RESTART IDENTITY CASCADE");
+            "TRUNCATE TABLE bookings, events, users RESTART IDENTITY CASCADE");
     }
 
     [Fact]
