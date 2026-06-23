@@ -3,18 +3,21 @@
 EventProject - учебный проект на базе ASP.NET (.NET 10), демонстрирующий работу с событиями.
 
 ## Архитектура проекта
+
 Проект построен по принципам Clean Architecture и разделён на несколько слоёв
 
 каталог src/
-- EventProject.Presentation   - Точка входа (Web API)
-- EventProject.Application    - Бизнес-логика приложения
+
+- EventProject.Presentation - Точка входа (Web API)
+- EventProject.Application - Бизнес-логика приложения
 - EventProject.Infrastructure - Работа с БД и внешними сервисами
-- EventProject.Domain         - Доменные сущности и контракты
+- EventProject.Domain - Доменные сущности и контракты
 
 каталог tests/
-- EventProject.Application.Tests    - Unit-тесты бизнес слоя
+
+- EventProject.Application.Tests - Unit-тесты бизнес слоя
 - EventProject.Infrastructure.Tests - Интеграционные тесты инфраструктуры
-- EventProject.Domain.Tests         - Unit-тесты доменных сущностей
+- EventProject.Domain.Tests - Unit-тесты доменных сущностей
 
 ## Требования
 
@@ -56,12 +59,15 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 ## Создание новой миграции
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef migrations add InitialCreate --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
 ```
+
 ## Создание очередной миграции
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef migrations add <MigrationName> --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
 ```
@@ -69,6 +75,7 @@ dotnet ef migrations add <MigrationName> --project ../EventProject.Infrastructur
 ## Применение миграций к базе данных
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef database update --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
@@ -76,41 +83,21 @@ dotnet ef database update --project ..\EventProject.Infrastructure\EventProject.
 ## Удаление последней миграции
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef migrations remove --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
-
-## API
-
-### EventsController
-
-- `GET /events` - получение списка всех событий с фильтром и пагинацией
-- `GET /events/{id}` - получение события по идентификатору
-- `POST /events` - создание нового события
-- `PUT /events/{id}` - обновление события по идентификатору
-- `DELETE /events/{id}` - удаление события по идентификатору
-
-### BookingsController
-
-- `GET /bookings` - получение списка всех бронирований с фильтром и пагинацией
-- `GET /bookings/{id}` - получение бронирования по идентификатору
-- `POST /bookings` - создание нового бронирования
-- `PUT /bookings/{id}` - обновление бронирования по идентификатору
-- `DELETE /bookings/{id}` - удаление бронирования по идентификатору
-
-### AuthController
-
-- `POST /auth/register` - регистрация нового пользователя
-- `POST /auth/login` - вход в систему
 
 ## Установка и запуск проекта
 
 1. Скачайте репозиторий
 2. Перейдите в папку решения EventProject
 3. Выполните команду `dotnet restore` - установка нужных пакетов для проектов в рамках решения
-4. Выполните команду `dotnet build src/EventProject.Presentation/EventProject.Presentation.csproj` - сборка проекта EventProject.Presentation
+4. Выполните команду `dotnet build src/EventProject.Presentation/EventProject.Presentation.csproj` - сборка проекта
+   EventProject.Presentation
 5. Установите базу данных PostgreSQL, к которой будет подключаться приложение, и выполните миграции
-6. Выполните команду `dotnet run --project src/EventProject.Presentation/EventProject.Presentation.csproj` - запуск проекта EventProject.
+6. Выполните команду `dotnet run --project src/EventProject.Presentation/EventProject.Presentation.csproj` - запуск
+   проекта EventProject.
 
 ## Тестовая среда
 
@@ -148,31 +135,37 @@ dotnet ef migrations remove --project ..\EventProject.Infrastructure\EventProjec
 - xUnit
 - Moq
 
-## Описание конечных точек API
+## API. Описание конечных точек API
 
-### GET /events - получение списка всех событий с фильтром и пагинацией
+### AuthController
 
-Для получения списка событий применяются следующие параметры:
+- `POST /auth/register` - регистрация нового пользователя
+- `POST /auth/login` - вход в систему
+
+### EventsController
+
+- `GET /events` - получение списка всех событий с фильтром и пагинацией
+  _Для получения списка событий применяются следующие параметры:
 
 - Title - фильтр по названию события, частичное совпадение, регистронезависимый поиск,
 - From - фильтр по дате начала события, возвращает события, которые начинаются не раньше указанной даты,
 - To - фильтр по дате окончания события, возвращает события, которые заканчиваются не позже указанной даты.
 - Page - номер страницы для вывода,
-- PageSize - количество элементов на странице.
+- PageSize - количество элементов на странице._
 
-### GET /events/{id} - получение события по идентификатору
+- `GET /events/{id}` - получение события по идентификатору
+- `POST /events` - создание нового события
+- `PUT /events/{id}` - обновление события по идентификатору
+- `DELETE /events/{id}` - удаление события по идентификатору
 
-### POST /events - создание нового события
+### BookingsController
 
-### PUT /events/{id} - обновление события по идентификатору
-
-### DELETE /events/{id} - удаление события по идентификатору
-
-### POST /events/{id}/book - создание бронирования
+- `POST /events/{id}/book` - создание бронирования
 
 Создание бронирования по идентификатору события.
 Возвращает объект бронирования BookingDto и в заголовке Location возвращает ссылку на ресурс брони (например,
 /bookings/{bookingId})
+
 BookingDto имеет следующие поля:
 
 - Id - идентификатор бронирования,
@@ -180,9 +173,11 @@ BookingDto имеет следующие поля:
 - Status - статус бронирования.
   Внимание! Статус Rejected в BookingStatus в текущей реализации не используется
 
-### GET /bookings/{id} - получение бронирования по идентификатору
+- `GET /bookings/{id}` - получение бронирования по идентификатору
 
 Получение бронирования по идентификатору. Возвращает объект бронирования BookingDto.
+
+- `DELETE /bookings/{id}` - удаление бронирования по идентификатору
 
 ## Формат ошибок:
 
@@ -202,6 +197,15 @@ BookingProcessingService - фоновый обработчик брониров�
 для снижения нагрузки на процессор. Изменяется статус бронирования с Pending на Confirmed и фиксируется время обработки.
 
 ## Модели
+
+### Модель User
+
+Сущность пользователя представлена классом `User` и содержит следующие поля:
+
+- `UserId` (Guid) — уникальный идентификатор пользователя
+- `Login` (string) — имя пользователя
+- `PasswordHash` (string) — хеш пароля
+- `Role` (Role) — роль пользователя
 
 ### Модель Event
 
@@ -229,11 +233,19 @@ BookingProcessingService - фоновый обработчик брониров�
 
 ### BookingStatus
 
-Сущность статусов брони представленна перечислением `BookingStatus` и содержит статусы:
+Сущность статусов брони представлена перечислением `BookingStatus` и содержит статусы:
 
 - `Pending`   (бронь создана и ожидает обработки)
 - `Confirmed` (бронь подтверждена)
 - `Rejected`  (бронь отклонена)
+- `Cancelled`  (бронь отменена)
+
+### Role
+
+Сущность ролей представлена перечислением `Role` и содержит роли:
+
+- `User`  (пользователь)
+- `Admin` (администратор)
 
 ### Фоновая обработка броней
 

@@ -89,6 +89,6 @@ public class EventsController(
     public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken ct = default)
     {
         await eventService.DeleteEvent(id, ct);
-        return Ok();
+        return NoContent();
     }
 }

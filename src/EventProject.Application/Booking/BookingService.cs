@@ -36,6 +36,9 @@ public class BookingService : IBookingService
             if (existingEvent == null)
                 throw new NotFoundException($"Событие по идентификатору {eventId} не найдено");
 
+            if (existingEvent.StartAt <= DateTime.UtcNow)
+                throw new EventAlreadyStartedException("Невозможно забронировать начавшееся или оконченное событие");
+            
             if (!existingEvent.TryReserveSeats())
                 throw new NoAvailableSeatsException("Недостаточно свободных мест");
 
