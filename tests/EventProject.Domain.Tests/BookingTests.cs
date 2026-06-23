@@ -1,4 +1,5 @@
 using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 
 namespace EventProject.Domain.Tests;
 
@@ -13,6 +14,7 @@ public class BookingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
@@ -36,6 +38,7 @@ public class BookingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,

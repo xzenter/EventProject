@@ -1,7 +1,6 @@
 ﻿using EventProject.Application.Abstractions.Repositories;
-using EventProject.Application.Event;
-using EventProject.Application.Event.DTOs;
-using EventProject.Domain.Entities;
+using EventProject.Application.Events;
+using EventProject.Application.Events.DTOs;
 using EventProject.Domain.Exceptions;
 using FluentAssertions;
 using Moq;

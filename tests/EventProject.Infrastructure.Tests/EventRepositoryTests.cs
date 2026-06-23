@@ -1,5 +1,6 @@
 using EventProject.Domain.Entities;
 using EventProject.Infrastructure.Repositories;
+using EventProject.Infrastructure.Tests.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.Infrastructure.Tests;

@@ -1,5 +1,7 @@
 using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 using EventProject.Infrastructure.Repositories;
+using EventProject.Infrastructure.Tests.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventProject.Infrastructure.Tests;
@@ -139,6 +141,7 @@ public class BookingRepositoryTests
         {
             Id = Guid.NewGuid(),
             EventId = eventEntity.Id,
+            UserId = Guid.NewGuid(),
             Status = status,
             CreatedAt = DateTime.UtcNow,
             ProcessedAt = processedAt,

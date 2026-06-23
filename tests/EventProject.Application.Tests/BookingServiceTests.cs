@@ -1,9 +1,10 @@
 ﻿using EventProject.Application.Abstractions.Repositories;
 using EventProject.Application.Booking;
 using EventProject.Application.Booking.DTOs;
-using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 using EventProject.Domain.Exceptions;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace EventProject.Application.Tests;
@@ -16,9 +17,18 @@ public class BookingServiceTests
 
     public BookingServiceTests()
     {
+        var bookingSettings = Options.Create(new BookingSettings
+        {
+            MaxActiveBookings = 10
+        });
+
         _bookingRepositoryMock = new Mock<IBookingRepository>();
         _eventRepositoryMock = new Mock<IEventRepository>();
-        _bookingService = new BookingService(_bookingRepositoryMock.Object, _eventRepositoryMock.Object);
+        _bookingService = new BookingService(
+            _bookingRepositoryMock.Object,
+            _eventRepositoryMock.Object,
+            bookingSettings
+        );
     }
 
     // Создание брони для существующего события — возвращается BookingInfo со статусом Pending
@@ -27,6 +37,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
@@ -42,7 +53,7 @@ public class BookingServiceTests
             });
 
         // Act
-        var result = await _bookingService.CreateBooking(eventId, CancellationToken.None);
+        var result = await _bookingService.CreateBooking(eventId, userId, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -56,6 +67,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
@@ -71,11 +83,11 @@ public class BookingServiceTests
             });
 
         // Act
-        var booking1 = await _bookingService.CreateBooking(eventId, CancellationToken.None);
-        var booking2 = await _bookingService.CreateBooking(eventId, CancellationToken.None);
+        var booking1 = await _bookingService.CreateBooking(eventId, userId, CancellationToken.None);
+        var booking2 = await _bookingService.CreateBooking(eventId, userId, CancellationToken.None);
 
         // Assert
-        booking1.Id.Should().NotBe(booking2.Id);
+        booking1.BookingId.Should().NotBe(booking2.BookingId);
     }
 
     // Получение брони по Id — возвращается корректная информация
@@ -85,6 +97,7 @@ public class BookingServiceTests
         // Arrange
         var bookingId = Guid.NewGuid();
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         _bookingRepositoryMock
             .Setup(x => x.GetById(bookingId))
@@ -92,6 +105,7 @@ public class BookingServiceTests
             {
                 Id = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.Now,
                 ProcessedAt = null,
@@ -102,7 +116,7 @@ public class BookingServiceTests
         var result = await _bookingService.GetBookingById(bookingId, CancellationToken.None);
 
         // Assert
-        result.Id.Should().Be(bookingId);
+        result.BookingId.Should().Be(bookingId);
         result.EventId.Should().Be(eventId);
         result.Status.Should().Be(BookingStatus.Pending);
     }
@@ -114,6 +128,7 @@ public class BookingServiceTests
         // Arrange
         var bookingId = Guid.NewGuid();
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         _bookingRepositoryMock
             .SetupSequence(x => x.GetById(bookingId))
@@ -121,6 +136,7 @@ public class BookingServiceTests
             {
                 Id = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.Now,
                 Event = null!,
@@ -129,6 +145,7 @@ public class BookingServiceTests
             {
                 Id = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Status = BookingStatus.Confirmed,
                 CreatedAt = DateTime.Now,
                 ProcessedAt = DateTime.Now,
@@ -153,12 +170,14 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
             .ReturnsAsync((Domain.Entities.Event?)null);
 
         // Act
-        var action = () => _bookingService.CreateBooking(eventId);
+        var action = () => _bookingService.CreateBooking(eventId, userId);
 
         // Assert
         await action.Should().ThrowAsync<NotFoundException>();
@@ -170,12 +189,14 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
             .ReturnsAsync((Domain.Entities.Event?)null);
 
         // Act
-        var action = () => _bookingService.CreateBooking(eventId);
+        var action = () => _bookingService.CreateBooking(eventId, userId);
 
         // Assert
         await action.Should().ThrowAsync<NotFoundException>();
@@ -201,7 +222,9 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         const int initialAvailableSeats = 5;
+
         var eventEntity = new Domain.Entities.Event
         {
             Id = eventId,
@@ -218,7 +241,7 @@ public class BookingServiceTests
             .ReturnsAsync(eventEntity);
 
         // Act
-        await _bookingService.CreateBooking(eventId, CancellationToken.None);
+        await _bookingService.CreateBooking(eventId, userId, CancellationToken.None);
 
         // Assert
         eventEntity.AvailableSeats.Should().Be(initialAvailableSeats - 1);
@@ -230,6 +253,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         const int totalSeats = 3;
 
         _eventRepositoryMock
@@ -249,13 +273,13 @@ public class BookingServiceTests
         var bookings = new List<BookingInfo>();
         for (var i = 0; i < totalSeats; i++)
         {
-            var booking = await _bookingService.CreateBooking(eventId, CancellationToken.None);
+            var booking = await _bookingService.CreateBooking(eventId, userId, CancellationToken.None);
             bookings.Add(booking);
         }
 
         // Assert
         bookings.Should().HaveCount(totalSeats);
-        bookings.Select(b => b.Id).Should().OnlyHaveUniqueItems();
+        bookings.Select(b => b.BookingId).Should().OnlyHaveUniqueItems();
 
         // Проверяем, что все брони имеют статус Pending
         foreach (var booking in bookings) booking.Status.Should().Be(BookingStatus.Pending);
@@ -270,6 +294,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         const int totalSeats = 1;
 
         _eventRepositoryMock
@@ -286,7 +311,7 @@ public class BookingServiceTests
             });
 
         // Act
-        var action = () => _bookingService.CreateBooking(eventId);
+        var action = () => _bookingService.CreateBooking(eventId, userId);
 
         // Assert
         await action.Should().ThrowAsync<NoAvailableSeatsException>();
@@ -298,6 +323,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         _eventRepositoryMock
             .Setup(x => x.GetById(eventId))
@@ -313,7 +339,7 @@ public class BookingServiceTests
             });
 
         // Act
-        var action = () => _bookingService.CreateBooking(eventId);
+        var action = () => _bookingService.CreateBooking(eventId, userId);
 
         // Assert
         await action.Should().ThrowAsync<NoAvailableSeatsException>();
@@ -328,6 +354,7 @@ public class BookingServiceTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
@@ -351,6 +378,7 @@ public class BookingServiceTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
@@ -371,6 +399,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         var event1 = new Domain.Entities.Event
         {
@@ -391,8 +420,13 @@ public class BookingServiceTests
         bookingRepositoryMock
             .Setup(b => b.GetById(It.IsAny<Guid>()))
             .ReturnsAsync((Domain.Entities.Booking?)null);
+        var bookingSettings = Options.Create(new BookingSettings
+        {
+            MaxActiveBookings = 10
+        });
 
-        var bookingService = new BookingService(bookingRepositoryMock.Object, eventRepositoryMock.Object);
+        var bookingService =
+            new BookingService(bookingRepositoryMock.Object, eventRepositoryMock.Object, bookingSettings);
 
         // Act
         var tasks = Enumerable.Range(0, 20)
@@ -400,7 +434,7 @@ public class BookingServiceTests
             {
                 try
                 {
-                    await bookingService.CreateBooking(eventId);
+                    await bookingService.CreateBooking(eventId, userId);
                     return (Success: true, Exception: (Exception?)null);
                 }
                 catch (Exception ex)
@@ -426,6 +460,7 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
         const int totalSeats = 10;
 
         _eventRepositoryMock
@@ -443,13 +478,13 @@ public class BookingServiceTests
 
         // Act
         var tasks = Enumerable.Range(0, totalSeats)
-            .Select(_ => _bookingService.CreateBooking(eventId))
+            .Select(_ => _bookingService.CreateBooking(eventId, userId))
             .ToArray();
 
         await Task.WhenAll(tasks);
 
         // Assert
         var bookings = tasks.Select(t => t.Result).ToList();
-        bookings.Select(b => b.Id).Should().OnlyHaveUniqueItems();
+        bookings.Select(b => b.BookingId).Should().OnlyHaveUniqueItems();
     }
 }

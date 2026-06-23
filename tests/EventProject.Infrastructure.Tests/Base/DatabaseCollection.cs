@@ -1,4 +1,4 @@
-namespace EventProject.Infrastructure.Tests;
+namespace EventProject.Infrastructure.Tests.Base;
 
 [CollectionDefinition("Database collection")]
 public class DatabaseCollection : ICollectionFixture<DatabaseFixture>
