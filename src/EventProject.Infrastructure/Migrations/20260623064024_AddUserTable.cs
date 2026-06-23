@@ -33,17 +33,38 @@ namespace EventProject.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_bookings_UserId",
+                table: "bookings",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_users_Login",
                 table: "users",
                 column: "Login",
                 unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_bookings_users_UserId",
+                table: "bookings",
+                column: "UserId",
+                principalTable: "users",
+                principalColumn: "UserId",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_bookings_users_UserId",
+                table: "bookings");
+
             migrationBuilder.DropTable(
                 name: "users");
+
+            migrationBuilder.DropIndex(
+                name: "IX_bookings_UserId",
+                table: "bookings");
 
             migrationBuilder.DropColumn(
                 name: "UserId",
