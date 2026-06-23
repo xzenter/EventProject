@@ -97,7 +97,7 @@ public class BookingService : IBookingService
         return bookingInfo;
     }
 
-    public async Task CancelBookingAsync(Guid bookingId, Guid userId, Role role, CancellationToken ct)
+    public async Task CancelBooking(Guid bookingId, Guid userId, Role role, CancellationToken ct)
     {
         var booking = await _bookingRepository.GetById(bookingId, ct);
 

@@ -62,7 +62,7 @@ public class BookingController(
     public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.GetUser();
-        await bookingService.CancelBookingAsync(id, user.UserId, user.Role, cancellationToken);
+        await bookingService.CancelBooking(id, user.UserId, user.Role, cancellationToken);
         return NoContent();
     }
 }
