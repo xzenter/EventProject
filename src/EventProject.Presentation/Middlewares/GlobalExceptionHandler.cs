@@ -56,6 +56,9 @@ internal sealed class GlobalExceptionHandler(
             BadRequestException => StatusCodes.Status400BadRequest,
             NotFoundException => StatusCodes.Status404NotFound,
             NoAvailableSeatsException => StatusCodes.Status409Conflict,
+            EventAlreadyStartedException => StatusCodes.Status400BadRequest,
+            BookingAccessDeniedException => StatusCodes.Status403Forbidden,
+            ActiveBookingLimitExceededException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
     }

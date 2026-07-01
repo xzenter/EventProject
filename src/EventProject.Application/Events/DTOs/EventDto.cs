@@ -1,4 +1,4 @@
-namespace EventProject.Application.Event.DTOs;
+namespace EventProject.Application.Events.DTOs;
 
 /// <summary>
 /// Объект, описывающий событие.

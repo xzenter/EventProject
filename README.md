@@ -3,18 +3,21 @@
 EventProject - учебный проект на базе ASP.NET (.NET 10), демонстрирующий работу с событиями.
 
 ## Архитектура проекта
+
 Проект построен по принципам Clean Architecture и разделён на несколько слоёв
 
 каталог src/
-- EventProject.Presentation   - Точка входа (Web API)
-- EventProject.Application    - Бизнес-логика приложения
+
+- EventProject.Presentation - Точка входа (Web API)
+- EventProject.Application - Бизнес-логика приложения
 - EventProject.Infrastructure - Работа с БД и внешними сервисами
-- EventProject.Domain         - Доменные сущности и контракты
+- EventProject.Domain - Доменные сущности и контракты
 
 каталог tests/
-- EventProject.Application.Tests    - Unit-тесты бизнес слоя
+
+- EventProject.Application.Tests - Unit-тесты бизнес слоя
 - EventProject.Infrastructure.Tests - Интеграционные тесты инфраструктуры
-- EventProject.Domain.Tests         - Unit-тесты доменных сущностей
+- EventProject.Domain.Tests - Unit-тесты доменных сущностей
 
 ## Требования
 
@@ -24,15 +27,30 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 - .NET SDK (рекомендуется .NET 10 и выше)
 - Docker (для запуска интеграционных тестов)
 
-## Настройка подключения к базе данных
+## Настройки (конфигурация)
 
 Строка подключения настраивается в файле appsettings.json:
 
 ``` json
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=your_password"
+  },
+  "Jwt": {
+    "Secret": "your_secret",
+    "Issuer": "your_issuer",
+    "Audience": "your_audience",
+    "LifetimeMinutes": 15
+  },
+  "BookingSettings": {
+    "MaxActiveBookings": 10
   }
 ```
+
+### Рекомендации для production по безопасности:
+
+- не храните Jwt:Secret в appsettings.json
+- используйте переменные окружения или внешние хранилища
+- используйте длинный случайный ключ (минимум 32–64 символа)
 
 ## Управление схемой базы данных
 
@@ -41,13 +59,23 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 ## Создание новой миграции
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef migrations add InitialCreate --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
+```
+
+## Создание очередной миграции
+
+Находясь в проекте **EventProject.Presentation**, выполните команду:
+
+``` bash
+dotnet ef migrations add <MigrationName> --project ../EventProject.Infrastructure/EventProject.Infrastructure.csproj
 ```
 
 ## Применение миграций к базе данных
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef database update --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
@@ -55,29 +83,21 @@ dotnet ef database update --project ..\EventProject.Infrastructure\EventProject.
 ## Удаление последней миграции
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
+
 ``` bash
 dotnet ef migrations remove --project ..\EventProject.Infrastructure\EventProject.Infrastructure.csproj --startup-project ..\EventProject.Presentation\EventProject.Presentation.csproj
 ```
-
-## Описание
-
-1. Проект содержит контроллер `EventsController` для работы с событиями.
-2. Контроллер реализуют CRUD операции для работы с событиями, а именно содержит следующие конечные точки:
-    - `GET /events` - получение списка всех событий с фильтром и пагинацией
-    - `GET /events/{id}` - получение события по идентификатору
-    - `POST /events` - создание нового события
-    - `PUT /events/{id}` - обновление события по идентификатору
-    - `DELETE /events/{id}` - удаление события по идентификатору
-3. Проект использует Swagger для документации API, доступный в Development режиме.
 
 ## Установка и запуск проекта
 
 1. Скачайте репозиторий
 2. Перейдите в папку решения EventProject
 3. Выполните команду `dotnet restore` - установка нужных пакетов для проектов в рамках решения
-4. Выполните команду `dotnet build src/EventProject.Presentation/EventProject.Presentation.csproj` - сборка проекта EventProject.Presentation
+4. Выполните команду `dotnet build src/EventProject.Presentation/EventProject.Presentation.csproj` - сборка проекта
+   EventProject.Presentation
 5. Установите базу данных PostgreSQL, к которой будет подключаться приложение, и выполните миграции
-6. Выполните команду `dotnet run --project src/EventProject.Presentation/EventProject.Presentation.csproj` - запуск проекта EventProject.
+6. Выполните команду `dotnet run --project src/EventProject.Presentation/EventProject.Presentation.csproj` - запуск
+   проекта EventProject.
 
 ## Тестовая среда
 
@@ -115,31 +135,37 @@ dotnet ef migrations remove --project ..\EventProject.Infrastructure\EventProjec
 - xUnit
 - Moq
 
-## Описание конечных точек API
+## API. Описание конечных точек API
 
-### GET /events - получение списка всех событий с фильтром и пагинацией
+### AuthController
 
-Для получения списка событий применяются следующие параметры:
+- `POST /auth/register` - регистрация нового пользователя
+- `POST /auth/login` - вход в систему
+
+### EventsController
+
+- `GET /events` - получение списка всех событий с фильтром и пагинацией
+  _Для получения списка событий применяются следующие параметры:
 
 - Title - фильтр по названию события, частичное совпадение, регистронезависимый поиск,
 - From - фильтр по дате начала события, возвращает события, которые начинаются не раньше указанной даты,
 - To - фильтр по дате окончания события, возвращает события, которые заканчиваются не позже указанной даты.
 - Page - номер страницы для вывода,
-- PageSize - количество элементов на странице.
+- PageSize - количество элементов на странице._
 
-### GET /events/{id} - получение события по идентификатору
+- `GET /events/{id}` - получение события по идентификатору
+- `POST /events` - создание нового события
+- `PUT /events/{id}` - обновление события по идентификатору
+- `DELETE /events/{id}` - удаление события по идентификатору
 
-### POST /events - создание нового события
+### BookingsController
 
-### PUT /events/{id} - обновление события по идентификатору
-
-### DELETE /events/{id} - удаление события по идентификатору
-
-### POST /events/{id}/book - создание бронирования
+- `POST /events/{id}/book` - создание бронирования
 
 Создание бронирования по идентификатору события.
 Возвращает объект бронирования BookingDto и в заголовке Location возвращает ссылку на ресурс брони (например,
 /bookings/{bookingId})
+
 BookingDto имеет следующие поля:
 
 - Id - идентификатор бронирования,
@@ -147,9 +173,11 @@ BookingDto имеет следующие поля:
 - Status - статус бронирования.
   Внимание! Статус Rejected в BookingStatus в текущей реализации не используется
 
-### GET /bookings/{id} - получение бронирования по идентификатору
+- `GET /bookings/{id}` - получение бронирования по идентификатору
 
 Получение бронирования по идентификатору. Возвращает объект бронирования BookingDto.
+
+- `DELETE /bookings/{id}` - удаление бронирования по идентификатору
 
 ## Формат ошибок:
 
@@ -169,6 +197,15 @@ BookingProcessingService - фоновый обработчик брониров�
 для снижения нагрузки на процессор. Изменяется статус бронирования с Pending на Confirmed и фиксируется время обработки.
 
 ## Модели
+
+### Модель User
+
+Сущность пользователя представлена классом `User` и содержит следующие поля:
+
+- `UserId` (Guid) — уникальный идентификатор пользователя
+- `Login` (string) — имя пользователя
+- `PasswordHash` (string) — хеш пароля
+- `Role` (Role) — роль пользователя
 
 ### Модель Event
 
@@ -196,11 +233,19 @@ BookingProcessingService - фоновый обработчик брониров�
 
 ### BookingStatus
 
-Сущность статусов брони представленна перечислением `BookingStatus` и содержит статусы:
+Сущность статусов брони представлена перечислением `BookingStatus` и содержит статусы:
 
 - `Pending`   (бронь создана и ожидает обработки)
 - `Confirmed` (бронь подтверждена)
 - `Rejected`  (бронь отклонена)
+- `Cancelled`  (бронь отменена)
+
+### Role
+
+Сущность ролей представлена перечислением `Role` и содержит роли:
+
+- `User`  (пользователь)
+- `Admin` (администратор)
 
 ### Фоновая обработка броней
 
@@ -279,4 +324,74 @@ BookingProcessingService - фоновый обработчик брониров�
 Остальные 5:
 
 - получают `409 Conflict`
+
+### Аутентификация и авторизация (JWT)
+
+Для доступа к защищённым методам API необходимо зарегистрировать пользователя и выполнить вход.
+После успешной аутентификации сервер выдаёт JWT-токен, который следует передавать в заголовке каждого защищённого
+запроса:
+
+```http
+Authorization: Bearer <JWT-токен>
+```
+
+## Получение JWT-токена через Swagger
+
+После запуска приложения откройте Swagger UI:
+
+```
+http://localhost:5169/swagger/index.html
+```
+
+### Шаг 1. Зарегистрируйте пользователя
+
+Выполните запрос на регистрацию `POST /auth/register` и передайте необходимые данные:
+
+```json
+{
+  "login": "test user",
+  "password": "your_password"
+}
+```
+
+После успешной регистрации пользователь будет создан в системе
+
+### Шаг 2. Выполните вход
+
+Выполните запрос авторизации `POST /auth/login` с учётными данными зарегистрированного пользователя:
+
+```json
+{
+  "login": "test user",
+  "password": "your_password"
+}
+```
+
+В ответе сервер вернёт JWT-токен.
+
+### Шаг 3. Авторизуйтесь в Swagger
+
+1. Нажмите кнопку `Authorize`
+2. Введите полученный токен в текстовом формате
+3. Нажмите `Authorize`
+
+После этого Swagger будет автоматически добавлять токен в заголовок `Authorization` при выполнении защищённых запросов.
+
+### Ролевая модель и разграничение прав
+
+В системе реализована ролевая модель на основе claims в JWT.
+
+Доступные роли:
+User — базовый пользователь
+
+- может создавать брони
+- может просматривать свои брони
+- может отменять свои брони
+- может просматривать список событий
+
+Admin — администратор системы
+
+- полный доступ ко всем операциям
+- может создавать, редактировать и удалять события
+- может просматривать и управлять всеми бронями
 

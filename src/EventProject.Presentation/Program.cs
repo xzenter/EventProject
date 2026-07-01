@@ -1,17 +1,16 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
-using EventProject.Application.Extensions;
-using EventProject.Infrastructure.Extensions;
+using EventProject.Application;
+using EventProject.Infrastructure;
 using EventProject.Presentation.BackgroundServices;
 using EventProject.Presentation.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                       ?? throw new InvalidOperationException("Connection string 'Default' not found.");
-
-builder.Services.AddInfrastructureServices(connectionString);
-builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddHostedService<BookingProcessingService>();
 
 builder.Services
@@ -23,9 +22,39 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddSwaggerGen(options =>
 {
+    options.SwaggerDoc(
+        "v1",
+        new OpenApiInfo
+        {
+            Title = "Учебный проект \"Event Project\"",
+            Description = "Sprint-8"
+        });
+
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
+
+    options.AddSecurityDefinition(
+        JwtBearerDefaults.AuthenticationScheme,
+        new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Description = "JWT токен.",
+            Scheme = JwtBearerDefaults.AuthenticationScheme,
+            BearerFormat = "JWT",
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header
+        });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference(
+                JwtBearerDefaults.AuthenticationScheme,
+                document),
+            []
+        }
+    });
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -33,7 +62,7 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-app.Services.ConfigureInfrastructure();
+app.Services.DbMigrate();
 
 app.UseExceptionHandler();
 
@@ -46,7 +75,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ExecuteUserMiddleware>();
+
 app.MapControllers();
 
 app.Run();

@@ -1,3 +1,5 @@
+using EventProject.Domain.Enums;
+
 namespace EventProject.Domain.Entities;
 
 public class Booking
@@ -8,6 +10,7 @@ public class Booking
     
     public required Guid Id { get; init; }
     public required Guid EventId { get; init; }
+    public required Guid UserId { get; set; }
     public required BookingStatus Status { get; set; }
     public required DateTime CreatedAt { get; init; }
     public DateTime? ProcessedAt { get; set; }
@@ -27,6 +30,12 @@ public class Booking
     public void Confirm(DateTime processedAt)
     {
         Status = BookingStatus.Confirmed;
+        ProcessedAt = processedAt;
+    }
+    
+    public void Cancel(DateTime processedAt)
+    {
+        Status = BookingStatus.Cancelled;
         ProcessedAt = processedAt;
     }
 }

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EventProject.Application.Event.DTOs;
+namespace EventProject.Application.Events.DTOs;
 
 /// <summary>
 /// Параметры для поиска событий.

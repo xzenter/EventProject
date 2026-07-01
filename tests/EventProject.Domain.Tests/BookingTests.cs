@@ -1,4 +1,5 @@
 using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 
 namespace EventProject.Domain.Tests;
 
@@ -13,6 +14,7 @@ public class BookingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
@@ -36,6 +38,7 @@ public class BookingTests
         {
             Id = Guid.NewGuid(),
             EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
@@ -47,6 +50,30 @@ public class BookingTests
 
         // Assert
         Assert.Equal(BookingStatus.Rejected, booking.Status);
+        Assert.NotNull(booking.ProcessedAt);
+    }
+
+    // После вызова Cancel() бронь возвращает статус Cancelled и заполненный ProcessedAt.
+    [Fact]
+    public void Cancel_Should_Set_Status_To_Cancelled_And_ProcessedAt_To_NonNull()
+    {
+        // Arrange
+        var booking = new Booking
+        {
+            Id = Guid.NewGuid(),
+            EventId = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            Status = BookingStatus.Pending,
+            ProcessedAt = null,
+            Event = null!
+        };
+
+        // Act
+        booking.Cancel(DateTime.UtcNow);
+
+        // Assert
+        Assert.Equal(BookingStatus.Cancelled, booking.Status);
         Assert.NotNull(booking.ProcessedAt);
     }
 }

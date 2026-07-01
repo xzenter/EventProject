@@ -1,10 +1,10 @@
 using EventProject.Application.Abstractions.Repositories;
 using EventProject.Application.Abstractions.Services;
 using EventProject.Application.DTOs;
-using EventProject.Application.Event.DTOs;
+using EventProject.Application.Events.DTOs;
 using EventProject.Domain.Exceptions;
 
-namespace EventProject.Application.Event;
+namespace EventProject.Application.Events;
 
 public class EventService : IEventService
 {

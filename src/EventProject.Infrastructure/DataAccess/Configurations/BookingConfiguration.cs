@@ -22,6 +22,10 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         // Указание обязательного поля внешнего ключа к Event
         builder.Property(b => b.EventId)
             .IsRequired();
+        
+        // Указание обязательного поля внешнего ключа к User
+        builder.Property(x => x.UserId)
+            .IsRequired();
 
         // Указание обязательного поля статуса с конвертацией enum -> string
         builder.Property(b => b.Status)
@@ -40,6 +44,12 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.HasOne(b => b.Event)
             .WithMany(e => e.Bookings)
             .HasForeignKey(b => b.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // Связь с User (один ко многим) с каскадным удалением
+        builder.HasOne<User>()             
+            .WithMany()                    
+            .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -1,10 +1,11 @@
 using EventProject.Application.Booking.DTOs;
-using EventProject.Domain.Entities;
+using EventProject.Domain.Enums;
 
 namespace EventProject.Application.Abstractions.Services;
 
 public interface IBookingService
 {
-    Task<BookingInfo> CreateBooking(Guid eventId, CancellationToken ct);
+    Task<BookingInfo> CreateBooking(Guid eventId, Guid userId, CancellationToken ct);
     Task<BookingInfo> GetBookingById(Guid bookingId, CancellationToken ct);
+    Task CancelBooking(Guid bookingId, Guid userId, Role role, CancellationToken ct);
 }
