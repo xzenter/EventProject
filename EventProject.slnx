@@ -9,6 +9,14 @@
     <Project Path="src/EventProject.Infrastructure/EventProject.Infrastructure.csproj" />
     <Project Path="src/EventProject.Presentation/EventProject.Presentation.csproj" />
   </Folder>
+  <Folder Name="/src/Auth/">
+    <Project Path="src/EventProject.Auth.Application/EventProject.Auth.Application.csproj" />
+    <Project Path="src/EventProject.Auth.Domain/EventProject.Auth.Domain.csproj" />
+    <Project Path="src/EventProject.Auth.Infrastructure/EventProject.Auth.Infrastructure.csproj" />
+    <Project Path="src/EventProject.Auth.Presentation/EventProject.Auth.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Bookings/" />
+  <Folder Name="/src/Events/" />
   <Folder Name="/tests/">
     <Project Path="tests/EventProject.Application.Tests/EventProject.Application.Tests.csproj" Id="11eeb38d-8755-46cb-9cbc-3acc11e7e76a" />
     <Project Path="tests/EventProject.Domain.Tests/EventProject.Domain.Tests.csproj" />
