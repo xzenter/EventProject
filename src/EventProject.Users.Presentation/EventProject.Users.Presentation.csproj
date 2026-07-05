@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DocumentationFile>bin\Debug\EventProject.Users.Presentation.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\EventProject.Users.Presentation.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\EventProject.Users.Application\EventProject.Users.Application.csproj"/>
+        <ProjectReference Include="..\EventProject.Users.Infrastructure\EventProject.Users.Infrastructure.csproj"/>
+        <ProjectReference Include="..\EventProject.Domain\EventProject.Domain.csproj"/>
+    </ItemGroup>
+
+</Project>

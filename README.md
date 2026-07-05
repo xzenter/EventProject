@@ -27,6 +27,12 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 - .NET SDK (рекомендуется .NET 10 и выше)
 - Docker (для запуска интеграционных тестов)
 
+Для запуска Docker окружения запустите команду:
+
+``` bash
+docker-compose_all.yml up -d
+```
+
 ## Настройки (конфигурация)
 
 Строка подключения настраивается в файле appsettings.json:
@@ -57,6 +63,13 @@ EventProject - учебный проект на базе ASP.NET (.NET 10), де
 Схема базы данных управляется с помощью миграций Entity Framework Core.
 
 ## Создание новой миграции
+
+Находясь в проекте **EventProject.Users.Infrastrucuture**, выполните команду:
+``` bash
+dotnet ef migrations add InitialCreate
+```
+....
+
 
 Находясь в проекте **EventProject.Presentation**, выполните команду:
 
