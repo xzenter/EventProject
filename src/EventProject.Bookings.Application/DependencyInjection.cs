@@ -11,7 +11,7 @@ public static class DependencyInjection
     public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IBookingService, BookingService>();
-        services.AddScoped<IBookingProcessor, BookingProcessor>();
+        services.AddScoped<BookingConfirmProcessor>();
 
         services.Configure<BookingSettings>(configuration.GetSection("BookingSettings"));
     }

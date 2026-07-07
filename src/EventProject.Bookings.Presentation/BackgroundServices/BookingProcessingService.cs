@@ -1,4 +1,5 @@
 using EventProject.Bookings.Application.Abstractions.Services;
+using EventProject.Bookings.Application.Services;
 
 namespace EventProject.Bookings.Presentation.BackgroundServices;
 
@@ -24,9 +25,9 @@ public class BookingProcessingService : BackgroundService
 
             var processor =
                 scope.ServiceProvider
-                    .GetRequiredService<IBookingProcessor>();
+                    .GetRequiredService<BookingConfirmProcessor>();
 
-            await processor.ProcessAsync(stoppingToken);
+            await processor.Execute(stoppingToken);
 
             await Task.Delay(10000, stoppingToken);
         }

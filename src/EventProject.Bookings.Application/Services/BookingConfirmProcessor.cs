@@ -5,20 +5,23 @@ using Microsoft.Extensions.Logging;
 
 namespace EventProject.Bookings.Application.Services;
 
-public class BookingProcessor : IBookingProcessor
+public class BookingConfirmProcessor
 {
     private readonly IBookingRepository _bookingRepository;
-    private readonly ILogger<BookingProcessor> _logger;
+    private readonly IBookingProducerService _bookingProducerService;
+    private readonly ILogger<BookingConfirmProcessor> _logger;
 
-    public BookingProcessor(
+    public BookingConfirmProcessor(
         IBookingRepository bookingRepository,
-        ILogger<BookingProcessor> logger)
+        IBookingProducerService bookingProducerService,
+        ILogger<BookingConfirmProcessor> logger)
     {
         _bookingRepository = bookingRepository;
+        _bookingProducerService = bookingProducerService;
         _logger = logger;
     }
 
-    public async Task ProcessAsync(CancellationToken stoppingToken)
+    public async Task Execute(CancellationToken stoppingToken)
     {
         try
         {
@@ -38,11 +41,9 @@ public class BookingProcessor : IBookingProcessor
 
     private async Task ProcessBookingAsync(Guid bookingId, CancellationToken stoppingToken)
     {
-        // имитация внешнего вызова
+        // Имитация внешнего вызова
         await Task.Delay(10000, stoppingToken);
-        
-        /*
-        Domain.Entities.Event? @event = null;
+
         var booking = await _bookingRepository.GetById(bookingId, stoppingToken);
 
         try
@@ -53,24 +54,10 @@ public class BookingProcessor : IBookingProcessor
                 return;
             }
 
-            @event = await _eventRepository.GetById(booking.EventId, stoppingToken);
-
-            if (@event is null)
-            {
-                // Если событие не найдено, отклоняем бронь, так как она не может быть обработана без связанного события
-                booking.Reject(DateTime.UtcNow);
-                await _bookingRepository.SaveChanges(stoppingToken);
-                await _eventRepository.SaveChanges(stoppingToken);
-
-                _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
-
-                return;
-            }
-
-            // Подтверждаем бронь
             booking.Confirm(DateTime.UtcNow);
+
             await _bookingRepository.SaveChanges(stoppingToken);
-            await _eventRepository.SaveChanges(stoppingToken);
+            await _bookingProducerService.SendConfirm(booking);
 
             _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
         }
@@ -84,14 +71,10 @@ public class BookingProcessor : IBookingProcessor
             {
                 booking.Reject(DateTime.UtcNow);
 
-                if (@event is not null)
-                    @event.ReleaseSeats();
-
                 await _bookingRepository.SaveChanges(stoppingToken);
-                await _eventRepository.SaveChanges(stoppingToken);
             }
 
             _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", bookingId);
-        }*/
+        }
     }
 }

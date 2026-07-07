@@ -1,7 +1,9 @@
 using System.Text;
 using EventProject.Events.Application.Abstractions.Repositories;
 using EventProject.Events.Infrastructure.Auth;
+using EventProject.Events.Infrastructure.BackgroundServices;
 using EventProject.Events.Infrastructure.DataAccess;
+using EventProject.Events.Infrastructure.Options;
 using EventProject.Events.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +31,6 @@ public static class DependencyInjection
                 .EnableDetailedErrors();
 #endif
         });
-
 
         var jwtOptions = new JwtOptions
         {
@@ -62,6 +63,12 @@ public static class DependencyInjection
             });
 
         services.AddScoped<IEventRepository, EventRepository>();
+
+        // Получаем опции Kafka из конфигурации
+        services.Configure<KafkaOptions>(configuration.GetSection("Kafka"));
+
+
+        services.AddHostedService<ConsumerWorker>();
     }
 
     public static void DbMigrate(this IServiceProvider serviceProvider)

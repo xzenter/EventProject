@@ -3,6 +3,7 @@ using EventProject.Bookings.Application.Abstractions.Repositories;
 using EventProject.Bookings.Application.Abstractions.Services;
 using EventProject.Bookings.Infrastructure.Auth;
 using EventProject.Bookings.Infrastructure.DataAccess;
+using EventProject.Bookings.Infrastructure.Options;
 using EventProject.Bookings.Infrastructure.Repositories;
 using EventProject.Bookings.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -64,6 +65,10 @@ public static class DependencyInjection
             });
 
         services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddSingleton<IBookingProducerService, BookingProducerService>();
+
+        // Kafka
+        services.Configure<KafkaOptions>(configuration.GetSection("Kafka"));
     }
 
     public static void DbMigrate(this IServiceProvider serviceProvider)
