@@ -4,6 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -23,6 +24,12 @@
         <ProjectReference Include="..\EventProject.Users.Application\EventProject.Users.Application.csproj"/>
         <ProjectReference Include="..\EventProject.Users.Infrastructure\EventProject.Users.Infrastructure.csproj"/>
         <ProjectReference Include="..\EventProject.Domain\EventProject.Domain.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>
