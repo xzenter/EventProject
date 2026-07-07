@@ -27,7 +27,7 @@ builder.Services.AddSwaggerGen(options =>
         new OpenApiInfo
         {
             Title = "Учебный проект \"Event Project\"",
-            Description = "Sprint-8"
+            Description = "Sprint-9"
         });
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -67,7 +67,7 @@ app.Services.DbMigrate();
 app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
 {
     app.MapOpenApi();
     app.UseSwagger();
