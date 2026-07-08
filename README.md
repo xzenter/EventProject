@@ -210,13 +210,77 @@ dotnet test
 
 ## Фоновые обработчики
 
-### BookingProcessingService
+### BookingProcessingService (Bookings API)
 
-Обрабатывает бронирования со статусом `Pending` с периодичностью 1 секунда:
-1. Выбирает брони с `Status == Pending`
-2. Проверяет доступность мест
-3. Устанавливает `Confirmed` (места есть) или `Rejected` (мест нет)
-4. Заполняет `ProcessedAt`
+Фоновый сервис в микросервисе Bookings. Каждые 10 секунд выбирает до 50 бронирований со статусом `Pending` и обрабатывает каждое:
+
+1. Ожидает 10 секунд (имитация обработки)
+2. Меняет статус брони на `Confirmed` и сохраняет в БД Bookings
+3. Публикует событие `BookingConfirmed` в топик Kafka `booking-confirmed`
+4. При ошибке — меняет статус на `Rejected`
+
+Проверка мест **не выполняется** в Bookings — эту ответственность берёт на себя Events через Kafka.
+
+### ConsumerWorker (Events API)
+
+Фоновый сервис в микросервисе Events. Слушает топик Kafka `booking-confirmed` и обрабатывает сообщения `BookingConfirmed`:
+
+**BookingConfirmed** (EventProject.Shared):
+
+| Поле        | Тип      | Описание                     |
+|-------------|----------|------------------------------|
+| BookingId   | Guid     | Идентификатор брони          |
+| EventId     | Guid     | Идентификатор события        |
+| UserId      | Guid     | Идентификатор пользователя   |
+| Seats       | int      | Количество мест (всегда 1)   |
+| ConfirmedAt | DateTime | Время подтверждения          |
+
+При получении сообщения ConsumerWorker:
+
+1. Загружает событие (`Event`) из БД Events по `EventId`
+2. Проверяет, что событие существует, не началось и есть достаточно мест
+3. Вызывает `event.TryReserveSeats(seats)` — уменьшает `AvailableSeats`
+4. Сохраняет изменения в БД Events
+5. Фиксирует смещение (offset) в Kafka (только после успешного резервирования)
+
+При неудаче (событие не найдено / уже началось / нет мест) — логирует предупреждение и **не фиксирует** offset,
+сообщение будет прочитано повторно после перезапуска.
+
+### Полный поток BookingConfirmed
+
+```
+Клиент
+  │
+  │ POST /events/{id}/book
+  ▼
+BookingsService.CreateBooking
+  │ 1. Создаёт Booking (Status = Pending)
+  │ 2. Сохраняет в БД Bookings
+  ▼
+Bookings DB (Pending)
+  │
+  │ (каждые 10 сек)
+  ▼
+BookingProcessingService
+  │ 1. Выбирает Pending брони
+  │ 2. Подтверждает (Status = Confirmed)
+  │ 3. Сохраняет в БД Bookings
+  │ 4. Публикует BookingConfirmed в Kafka
+  ▼
+Kafka topic "booking-confirmed"
+  │
+  │ (асинхронно)
+  ▼
+ConsumerWorker (Events API)
+  │ 1. Читает BookingConfirmed из Kafka
+  │ 2. Загружает Event из БД Events
+  │ 3. Проверяет: событие существует, не началось, есть места
+  │ 4. Резервирует места (AvailableSeats -= Seats)
+  │ 5. Сохраняет в БД Events
+  │ 6. Фиксирует offset
+  ▼
+Events DB (AvailableSeats обновлено)
+```
 
 ## Аутентификация и авторизация (JWT)
 
@@ -266,7 +330,7 @@ curl -X POST "http://localhost:5002/events/$EVENT_ID/book" \
   -H "Authorization: Bearer $TOKEN"
 
 # 4. Получить бронь (Bookings API)
-# После обработки фоновым сервисом статус станет Confirmed
+# Статус станет Confirmed (через ~20 сек), места уменьшатся в Events API
 curl http://localhost:5002/bookings/{bookingId} \
   -H "Authorization: Bearer $TOKEN"
 ```
