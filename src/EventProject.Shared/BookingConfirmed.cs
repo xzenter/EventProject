@@ -2,17 +2,28 @@ namespace EventProject.Shared;
 
 public class BookingConfirmed
 {
-    /*
-     *  простой неизменяемый тип с минимально необходимыми данными:
-     * идентификаторы брони,
-     * события и
-     * пользователя,
-     * количество мест
-     * момент подтверждения.
-     */
-
+    /// <summary>
+    /// Идентификатор брони
+    /// </summary>
     public Guid BookingId { get; init; }
+
+    /// <summary>
+    /// Идентификатор события
+    /// </summary>
     public Guid EventId { get; init; }
+
+    /// <summary>
+    /// Идентификатор пользователя
+    /// </summary>
     public Guid UserId { get; init; }
-    public DateTime CreatedAt { get; init; }
+
+    /// <summary>
+    /// Количество мест
+    /// </summary>
+    public int Seats { get; init; }
+
+    /// <summary>
+    /// Время подтверждения брони
+    /// </summary>
+    public DateTime ConfirmedAt { get; init; }
 }

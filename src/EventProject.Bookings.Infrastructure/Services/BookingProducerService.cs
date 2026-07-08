@@ -29,7 +29,8 @@ public class BookingProducerService : IBookingProducerService, IDisposable
             EventId = booking.EventId,
             BookingId = booking.Id,
             UserId = booking.UserId,
-            CreatedAt = booking.CreatedAt
+            Seats = 1,
+            ConfirmedAt = booking.ProcessedAt ?? DateTime.UtcNow,
         };
 
         var result = await _producer.ProduceAsync(Constants.BOOKING_CONFIRMED_TOPIC_NAME, new Message<string, string>

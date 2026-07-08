@@ -40,14 +40,9 @@ public class ConsumerWorker : BackgroundService
         var config = new ConsumerConfig
         {
             BootstrapServers = _settings.BootstrapServers,
-            // Все консьюмеры с одинаковым GroupId делят партиции топика между собой
-            GroupId = "order-processing",
-            // Earliest — при первом запуске читать с начала топика
-            // (если у группы ещё нет сохранённого офсета)
+            GroupId = _settings.ConsumerGroup,
             AutoOffsetReset = AutoOffsetReset.Earliest,
-            // false — управляем коммитом офсета вручную (at-least-once)
             EnableAutoCommit = false,
-            // false — управляем позицией смещения вручную
             EnableAutoOffsetStore = false
         };
 
@@ -81,7 +76,39 @@ public class ConsumerWorker : BackgroundService
                     var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
 
                     var @event = await eventRepository.GetById(bookingConfirmed.EventId, stoppingToken);
-                    @event.TryReserveSeats();
+
+                    if (@event == null)
+                    {
+                        _logger.LogWarning(
+                            "Событие не найдено. BookingId={BookingId}, EventId={EventId}",
+                            bookingConfirmed.BookingId,
+                            bookingConfirmed.EventId);
+                        continue;
+                    }
+
+                    if (@event.StartAt <= DateTime.UtcNow)
+                    {
+                        _logger.LogWarning(
+                            "Событие уже началось. BookingId={BookingId}, EventId={EventId}, StartAt={StartAt}",
+                            bookingConfirmed.BookingId,
+                            bookingConfirmed.EventId,
+                            @event.StartAt);
+                        continue;
+                    }
+
+                    if (@event.AvailableSeats < bookingConfirmed.Seats)
+                    {
+                        _logger.LogWarning(
+                            "Недостаточно мест. BookingId={BookingId}, EventId={EventId}, " +
+                            "AvailableSeats={AvailableSeats}, Seats={Seats}",
+                            bookingConfirmed.BookingId,
+                            bookingConfirmed.EventId,
+                            @event.AvailableSeats,
+                            bookingConfirmed.Seats);
+                        continue;
+                    }
+
+                    @event.TryReserveSeats(bookingConfirmed.Seats);
 
                     await eventRepository.SaveChanges(stoppingToken);
 
