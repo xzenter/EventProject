@@ -2,12 +2,34 @@
   <Folder Name="/SolutionFolder/">
     <File Path=".gitignore" />
     <File Path="README.md" />
+      <File Path="src/docker-compose_all.yml" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/EventProject.Shared/EventProject.Shared.csproj" />
+  </Folder>
+  <Folder Name="/src/Bookings/">
+    <Project Path="src/EventProject.Bookings.Application/EventProject.Bookings.Application.csproj" />
+    <Project Path="src/EventProject.Bookings.Domain/EventProject.Bookings.Domain.csproj" />
+    <Project Path="src/EventProject.Bookings.Infrastructure/EventProject.Bookings.Infrastructure.csproj" />
+    <Project Path="src/EventProject.Bookings.Presentation/EventProject.Bookings.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Events/">
+    <Project Path="src/EventProject.Events.Application/EventProject.Events.Application.csproj" />
+    <Project Path="src/EventProject.Events.Domain/EventProject.Events.Domain.csproj" />
+    <Project Path="src/EventProject.Events.Infrastructure/EventProject.Events.Infrastructure.csproj" />
+    <Project Path="src/EventProject.Events.Presentation/EventProject.Events.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Monolith/">
     <Project Path="src/EventProject.Application/EventProject.Application.csproj" />
     <Project Path="src/EventProject.Domain/EventProject.Domain.csproj" />
     <Project Path="src/EventProject.Infrastructure/EventProject.Infrastructure.csproj" />
     <Project Path="src/EventProject.Presentation/EventProject.Presentation.csproj" />
+  </Folder>
+    <Folder Name="/src/Users/">
+        <Project Path="src/EventProject.Users.Application/EventProject.Users.Application.csproj" />
+        <Project Path="src/EventProject.Users.Domain/EventProject.Users.Domain.csproj" />
+        <Project Path="src/EventProject.Users.Infrastructure/EventProject.Users.Infrastructure.csproj" />
+        <Project Path="src/EventProject.Users.Presentation/EventProject.Users.Presentation.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EventProject.Application.Tests/EventProject.Application.Tests.csproj" Id="11eeb38d-8755-46cb-9cbc-3acc11e7e76a" />

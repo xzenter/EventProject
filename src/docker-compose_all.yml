@@ -1,0 +1,153 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: eventapi-kafka
+    restart: unless-stopped
+    environment:
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - eventapi-network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  users-db:
+    image: postgres:16-alpine
+    container_name: eventapi-users-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users
+    ports:
+      - "5433:5432"
+    volumes:
+      - users_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d users"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eventapi-network
+
+  events-db:
+    image: postgres:16-alpine
+    container_name: eventapi-events-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: events
+    ports:
+      - "5434:5432"
+    volumes:
+      - events_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d events"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eventapi-network
+
+  bookings-db:
+    image: postgres:16-alpine
+    container_name: eventapi-bookings-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bookings
+    ports:
+      - "5435:5432"
+    volumes:
+      - bookings_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bookings"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eventapi-network
+
+  users-api:
+    build:
+      context: ..
+      dockerfile: src/EventProject.Users.Presentation/Dockerfile
+    container_name: eventapi-users-api
+    restart: unless-stopped
+    depends_on:
+      users-db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5000:8080"
+    networks:
+      - eventapi-network
+
+  events-api:
+    build:
+      context: ..
+      dockerfile: src/EventProject.Events.Presentation/Dockerfile
+    container_name: eventapi-events-api
+    restart: unless-stopped
+    depends_on:
+      events-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5001:8080"
+    networks:
+      - eventapi-network
+
+  bookings-api:
+    build:
+      context: ..
+      dockerfile: src/EventProject.Bookings.Presentation/Dockerfile
+    container_name: eventapi-bookings-api
+    restart: unless-stopped
+    depends_on:
+      bookings-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5002:8080"
+    networks:
+      - eventapi-network
+
+networks:
+  eventapi-network:
+    driver: bridge
+
+volumes:
+  kafka_data:
+  users_pgdata:
+  events_pgdata:
+  bookings_pgdata:
