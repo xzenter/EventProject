@@ -1,5 +1,5 @@
 ﻿using EventProject.Users.Application.Abstractions.Services;
-using EventProject.Users.Application.Users.DTOs;
+using EventProject.Users.Application.Auth.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

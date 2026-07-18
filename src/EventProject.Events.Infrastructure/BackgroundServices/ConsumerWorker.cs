@@ -2,6 +2,8 @@ using System.Text.Json;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using EventProject.Events.Application.Abstractions.Repositories;
+using EventProject.Events.Application.Abstractions.Services;
+using EventProject.Events.Application.Caching;
 using EventProject.Events.Infrastructure.Options;
 using EventProject.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,15 +18,18 @@ public class ConsumerWorker : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<ConsumerWorker> _logger;
     private readonly KafkaOptions _settings;
+    private readonly CacheTtlOptions _ttlOptions;
 
     public ConsumerWorker(
         IServiceScopeFactory scopeFactory,
         IOptions<KafkaOptions> options,
+        IOptions<CacheTtlOptions> ttlOptions,
         ILogger<ConsumerWorker> logger
     )
     {
         _scopeFactory = scopeFactory;
         _settings = options.Value;
+        _ttlOptions = ttlOptions.Value;
         _logger = logger;
     }
 
@@ -75,9 +80,9 @@ public class ConsumerWorker : BackgroundService
                     using var scope = _scopeFactory.CreateScope();
                     var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
 
-                    var @event = await eventRepository.GetById(bookingConfirmed.EventId, stoppingToken);
+                    var existingEvent = await eventRepository.GetById(bookingConfirmed.EventId, stoppingToken);
 
-                    if (@event == null)
+                    if (existingEvent == null)
                     {
                         _logger.LogWarning(
                             "Событие не найдено. BookingId={BookingId}, EventId={EventId}",
@@ -86,33 +91,43 @@ public class ConsumerWorker : BackgroundService
                         continue;
                     }
 
-                    if (@event.StartAt <= DateTime.UtcNow)
+                    if (existingEvent.StartAt <= DateTime.UtcNow)
                     {
                         _logger.LogWarning(
                             "Событие уже началось. BookingId={BookingId}, EventId={EventId}, StartAt={StartAt}",
                             bookingConfirmed.BookingId,
                             bookingConfirmed.EventId,
-                            @event.StartAt);
+                            existingEvent.StartAt);
                         continue;
                     }
 
-                    if (@event.AvailableSeats < bookingConfirmed.Seats)
+                    if (existingEvent.AvailableSeats < bookingConfirmed.Seats)
                     {
                         _logger.LogWarning(
                             "Недостаточно мест. BookingId={BookingId}, EventId={EventId}, " +
                             "AvailableSeats={AvailableSeats}, Seats={Seats}",
                             bookingConfirmed.BookingId,
                             bookingConfirmed.EventId,
-                            @event.AvailableSeats,
+                            existingEvent.AvailableSeats,
                             bookingConfirmed.Seats);
                         continue;
                     }
 
-                    @event.TryReserveSeats(bookingConfirmed.Seats);
+                    existingEvent.TryReserveSeats(bookingConfirmed.Seats);
 
                     await eventRepository.SaveChanges(stoppingToken);
 
                     consumer.Commit(consumeResult);
+
+                    var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+
+                    // Обновить данные в кеше
+                    await cacheService
+                        .SetAsync(
+                            CacheKeys.Event(existingEvent.Id),
+                            existingEvent,
+                            TimeSpan.FromMinutes(_ttlOptions.EventMinutes),
+                            stoppingToken);
                 }
                 catch (Exception ex)
                 {

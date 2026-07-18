@@ -6,6 +6,8 @@ public interface IEventRepository
 
     Task<IEnumerable<Domain.Entities.Event>> GetByFilter(string? title, DateTime? from, DateTime? to, CancellationToken ct);
 
+    Task<IReadOnlyCollection<Domain.Entities.Event>> GetTopEvents(int count = 10, CancellationToken ct = default);
+
     Task Add(Domain.Entities.Event entity, CancellationToken ct = default);
 
     void Delete(Domain.Entities.Event entity, CancellationToken ct = default);

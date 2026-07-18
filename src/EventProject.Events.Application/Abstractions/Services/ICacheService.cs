@@ -10,7 +10,7 @@
         /// Объект типа <typeparamref name="T"/>, если запись с указанным ключом найдена в кэше;
         /// в противном случае — <see langword="null"/>.
         /// </returns>
-        Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);
+        Task<T?> GetAsync<T>(string key, CancellationToken ct = default);
 
         /// <summary>
         /// Сохраняет объект в кэш на указанное время.

@@ -44,6 +44,19 @@ public class EventsController(
     }
 
     /// <summary>
+    /// Получить 10 самых популярных событий (с наибольшим процентом проданных мест).
+    /// </summary>
+    /// <response code="200">Список популярных событий успешно получен.</response>
+    [ProducesResponseType(typeof(IReadOnlyCollection<EventDto>), StatusCodes.Status200OK)]
+    [AllowAnonymous]
+    [HttpGet("top")]
+    public async Task<ActionResult<IReadOnlyCollection<EventDto>>> GetTopEvents(CancellationToken ct = default)
+    {
+        var topEvents = await eventService.GetTopEvents(ct);
+        return Ok(topEvents);
+    }
+
+    /// <summary>
     /// Создать событие.
     /// </summary>
     /// <param name="eventForCreationQuery">Параметры события.</param>

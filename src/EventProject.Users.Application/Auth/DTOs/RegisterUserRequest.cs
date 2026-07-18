@@ -1,6 +1,6 @@
 ﻿using EventProject.Users.Domain.Enums;
 
-namespace EventProject.Users.Application.Users.DTOs;
+namespace EventProject.Users.Application.Auth.DTOs;
 
 public record RegisterUserRequest
 {
