@@ -1,7 +1,9 @@
 using System.Text;
 using EventProject.Events.Application.Abstractions.Repositories;
+using EventProject.Events.Application.Abstractions.Services;
 using EventProject.Events.Infrastructure.Auth;
 using EventProject.Events.Infrastructure.BackgroundServices;
+using EventProject.Events.Infrastructure.CachingService;
 using EventProject.Events.Infrastructure.DataAccess;
 using EventProject.Events.Infrastructure.Options;
 using EventProject.Events.Infrastructure.Repositories;
@@ -89,6 +91,8 @@ public static class DependencyInjection
         options.EndPoints.Add(redisOptions.RedisServers);
 
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(options));
+        
+        services.AddScoped<ICacheService, RedisCacheService>();
     }
 
     public static void DbMigrate(this IServiceProvider serviceProvider)
