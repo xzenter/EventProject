@@ -1,5 +1,4 @@
-﻿using EventProject.Domain.Exceptions;
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using BadRequestException = EventProject.Users.Domain.Exceptions.BadRequestException;
 using NotFoundException = EventProject.Users.Domain.Exceptions.NotFoundException;
@@ -57,10 +56,6 @@ internal sealed class GlobalExceptionHandler(
         {
             BadRequestException => StatusCodes.Status400BadRequest,
             NotFoundException => StatusCodes.Status404NotFound,
-            NoAvailableSeatsException => StatusCodes.Status409Conflict,
-            EventAlreadyStartedException => StatusCodes.Status400BadRequest,
-            BookingAccessDeniedException => StatusCodes.Status403Forbidden,
-            ActiveBookingLimitExceededException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
     }

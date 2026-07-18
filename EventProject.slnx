@@ -19,12 +19,6 @@
     <Project Path="src/EventProject.Events.Infrastructure/EventProject.Events.Infrastructure.csproj" />
     <Project Path="src/EventProject.Events.Presentation/EventProject.Events.Presentation.csproj" />
   </Folder>
-  <Folder Name="/src/Monolith/">
-    <Project Path="src/EventProject.Application/EventProject.Application.csproj" />
-    <Project Path="src/EventProject.Domain/EventProject.Domain.csproj" />
-    <Project Path="src/EventProject.Infrastructure/EventProject.Infrastructure.csproj" />
-    <Project Path="src/EventProject.Presentation/EventProject.Presentation.csproj" />
-  </Folder>
     <Folder Name="/src/Users/">
         <Project Path="src/EventProject.Users.Application/EventProject.Users.Application.csproj" />
         <Project Path="src/EventProject.Users.Domain/EventProject.Users.Domain.csproj" />
