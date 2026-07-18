@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 namespace EventProject.Events.Infrastructure;
 
@@ -67,8 +68,27 @@ public static class DependencyInjection
         // Получаем опции Kafka из конфигурации
         services.Configure<KafkaOptions>(configuration.GetSection("Kafka"));
 
-
         services.AddHostedService<ConsumerWorker>();
+        
+        // Redis
+        services.Configure<RedisOptions>(configuration.GetSection("Redis"));
+
+        var redisOptions = configuration
+            .GetSection("Redis")
+            .Get<RedisOptions>()!;
+
+        var options = new ConfigurationOptions
+        {
+            Password = redisOptions.Password,
+            ConnectTimeout = redisOptions.ConnectTimeout,
+            SyncTimeout = redisOptions.SyncTimeout,
+            AbortOnConnectFail = redisOptions.AbortOnConnectFail,
+            ConnectRetry = redisOptions.ConnectRetry
+        };
+
+        options.EndPoints.Add(redisOptions.RedisServers);
+
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(options));
     }
 
     public static void DbMigrate(this IServiceProvider serviceProvider)
