@@ -165,6 +165,7 @@ networks:
 
 volumes:
   kafka_data:
+  redis-data:
   users_pgdata:
   events_pgdata:
   bookings_pgdata:
