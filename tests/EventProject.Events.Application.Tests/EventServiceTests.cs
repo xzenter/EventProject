@@ -1,483 +1,425 @@
 ﻿using EventProject.Events.Application.Abstractions.Repositories;
+using EventProject.Events.Application.Abstractions.Services;
+using EventProject.Events.Application.Caching;
 using EventProject.Events.Application.Events;
 using EventProject.Events.Application.Events.DTOs;
+using EventProject.Events.Domain.Entities;
 using EventProject.Events.Domain.Exceptions;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 
-namespace EventProject.Events.Application.Tests;
-
-public class EventServiceTests
+namespace EventProject.Events.Application.Tests
 {
-    private readonly EventService _eventService;
-    private readonly Mock<IEventRepository> _eventRepositoryMock;
-
-    public EventServiceTests()
+    public class EventServiceTest
     {
-        _eventRepositoryMock = new Mock<IEventRepository>();
-        _eventService = new EventService(_eventRepositoryMock.Object);
-    }
-
-    private readonly List<EventForCreationQuery> _eventsForCreation =
-    [
-        new EventForCreationQuery
+        private readonly Mock<IEventRepository> _eventRepositoryMock = new();
+        private readonly Mock<ICacheService> _cacheServiceMock = new();
+        private readonly CacheTtlOptions _cacheTtlOptions = new()
         {
-            Title = "Test Event 1",
-            Description = "Test Description 1",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(1)
-        },
+            EventMinutes = 5,
+            Top10EventsMinutes = 10
+        };
+        private readonly IOptions<CacheTtlOptions> _cacheOptions;
 
-        new EventForCreationQuery
+        public EventServiceTest()
         {
-            Title = "Test Event 2",
-            Description = "Test Description 2",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(2)
-        },
-
-        new EventForCreationQuery
-        {
-            Title = "Test Event 3",
-            Description = "Test Description 3",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(3)
-        },
-
-        new EventForCreationQuery
-        {
-            Title = "Test Event 4",
-            Description = "Test Description 4",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(4)
+            _cacheOptions = Options.Create(_cacheTtlOptions);
         }
-    ];
 
-    // создание события
-    [Fact]
-    public async Task CreateEvent_ShouldReturnsEvent()
-    {
-        var eventForCreation = new EventForCreationQuery
+        private EventService CreateEventService()
         {
-            Title = "Test Event",
-            Description = "Test Description",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(1)
-        };
+            return new EventService(_eventRepositoryMock.Object, _cacheServiceMock.Object, _cacheOptions);
+        }
 
-        var eventDto = await _eventService.CreateEvent(eventForCreation, CancellationToken.None);
-
-        eventDto.Should().NotBeNull();
-        eventDto.Title.Should().Be(eventForCreation.Title);
-        eventDto.Description.Should().Be(eventForCreation.Description);
-        eventDto.StartAt.Should().Be(eventForCreation.StartAt);
-        eventDto.EndAt.Should().Be(eventForCreation.EndAt);
-    }
-
-
-    // получение всех событий
-    [Fact]
-    public async Task GetEvents_ShouldReturnsEvents()
-    {
-        // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
+        private static Event CreateEventEntity(Guid? id = null)
         {
-            Id = Guid.NewGuid(),
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        }).ToList();
+            return new Event
+            {
+                Id = id ?? Guid.NewGuid(),
+                Title = "Test Event",
+                Description = "Test Description",
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(1).AddHours(2),
+                TotalSeats = 100,
+                AvailableSeats = 100
+            };
+        }
 
-        _eventRepositoryMock
-            .Setup(x => x.GetByFilter(null, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(events);
-
-        // Act
-        var searchQuery = new SearchEventsQuery
+        private static EventDto CreateEventDto(Guid? id = null)
         {
-            Title = null,
-            From = null,
-            To = null,
-            Page = 1,
-            PageSize = _eventsForCreation.Count
-        };
+            var eventId = id ?? Guid.NewGuid();
+            return new EventDto
+            {
+                Id = eventId,
+                Title = "Test Event",
+                Description = "Test Description",
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(1).AddHours(2),
+                TotalSeats = 100,
+                AvailableSeats = 100
+            };
+        }
 
-        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
+        // ============================================================
+        // GetEvent — cache hit scenarios
+        // ============================================================
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(_eventsForCreation.Count);
-        result.TotalItems.Should().Be(_eventsForCreation.Count);
-    }
-
-    // получение события по ID
-    [Fact]
-    public async Task GetEventById_ShouldReturnsEvent()
-    {
-        // Arrange
-        var eventId = Guid.NewGuid();
-        var eventEntity = new Domain.Entities.Event
+        [Fact]
+        public async Task GetEvent_CacheHit_ReturnsCachedDataAndDoesNotCallRepository()
         {
-            Id = eventId,
-            Title = "Test Event",
-            Description = "Test Description",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(1),
-            TotalSeats = 1,
-            AvailableSeats = 1
-        };
+            var eventId = Guid.NewGuid();
+            var cachedDto = CreateEventDto(eventId);
 
-        _eventRepositoryMock
-            .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(eventEntity);
+            _cacheServiceMock
+                .Setup(c => c.GetAsync<EventDto>(CacheKeys.Event(eventId), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cachedDto);
 
-        // Act
-        var result = await _eventService.GetEvent(eventId, CancellationToken.None);
+            var service = CreateEventService();
+            var result = await service.GetEvent(eventId, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(eventId);
-        result.Title.Should().Be(eventEntity.Title);
-        result.Description.Should().Be(eventEntity.Description);
-        result.StartAt.Should().Be(eventEntity.StartAt);
-        result.EndAt.Should().Be(eventEntity.EndAt);
-    }
+            result.Should().BeEquivalentTo(cachedDto);
+            _eventRepositoryMock.Verify(r => r.GetById(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+            _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<EventDto>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
 
-    // обновление существующего события
-    [Fact]
-    public async Task UpdateEvent_ShouldReturnsUpdatedEvent()
-    {
-        // Arrange
-        var eventId = Guid.NewGuid();
-        var eventForCreation = _eventsForCreation[0];
-    
-        var eventEntity = new Domain.Entities.Event
+        // ============================================================
+        // GetEvent — cache miss scenarios
+        // ============================================================
+
+        [Fact]
+        public async Task GetEvent_CacheMiss_FetchesFromRepositoryAndSavesToCache()
         {
-            Id = eventId,
-            Title = eventForCreation.Title,
-            Description = eventForCreation.Description,
-            StartAt = eventForCreation.StartAt,
-            EndAt = eventForCreation.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        };
+            var eventId = Guid.NewGuid();
+            var eventEntity = CreateEventEntity(eventId);
 
-        _eventRepositoryMock
-            .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(eventEntity);
+            _cacheServiceMock
+                .Setup(c => c.GetAsync<EventDto>(CacheKeys.Event(eventId), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EventDto?)null);
 
-        _eventRepositoryMock
-            .Setup(x => x.SaveChanges(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            _eventRepositoryMock
+                .Setup(r => r.GetById(eventId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(eventEntity);
 
-        var eventForUpdate = new EventForUpdateQuery
+            var service = CreateEventService();
+            var result = await service.GetEvent(eventId, CancellationToken.None);
+
+            result.Id.Should().Be(eventId);
+            result.Title.Should().Be(eventEntity.Title);
+
+            _eventRepositoryMock.Verify(r => r.GetById(eventId, It.IsAny<CancellationToken>()), Times.Once);
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(
+                    CacheKeys.Event(eventId),
+                    It.Is<EventDto>(dto => dto.Id == eventId),
+                    TimeSpan.FromMinutes(_cacheTtlOptions.EventMinutes),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task GetEvent_CacheMissAndEventNotFound_ThrowsNotFoundException()
         {
-            Title = "New Title",
-            Description = "New Description",
-            StartAt = DateTime.Now.AddDays(10),
-            EndAt = DateTime.Now.AddDays(20)
-        };
+            var eventId = Guid.NewGuid();
 
-        // Act
-        var result = await _eventService.UpdateEvent(eventId, eventForUpdate, CancellationToken.None);
+            _cacheServiceMock
+                .Setup(c => c.GetAsync<EventDto>(CacheKeys.Event(eventId), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EventDto?)null);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Id.Should().Be(eventId);
-        result.Title.Should().Be(eventForUpdate.Title);
-        result.Description.Should().Be(eventForUpdate.Description);
-        result.StartAt.Should().Be(eventForUpdate.StartAt);
-        result.EndAt.Should().Be(eventForUpdate.EndAt);
-    }
+            _eventRepositoryMock
+                .Setup(r => r.GetById(eventId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Event?)null);
 
-    // удаление существующего события
-    [Fact]
-    public async Task DeleteEvent_ShouldDeleteEvent()
-    {
-        // Arrange
-        var eventId = Guid.NewGuid();
+            var service = CreateEventService();
+            var act = () => service.GetEvent(eventId, CancellationToken.None);
 
-        var eventEntity = new Domain.Entities.Event
+            await act.Should().ThrowAsync<NotFoundException>();
+
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(It.IsAny<string>(), It.IsAny<EventDto>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        // ============================================================
+        // GetTopEvents — cache hit scenarios
+        // ============================================================
+
+        [Fact]
+        public async Task GetTopEvents_CacheHit_ReturnsCachedDataAndDoesNotCallRepository()
         {
-            Id = eventId,
-            Title = "Test Event",
-            Description = "Test Description",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(1),
-            TotalSeats = 1,
-            AvailableSeats = 1
-        };
+            var cachedEvents = new List<EventDto> { CreateEventDto(), CreateEventDto() };
 
-        _eventRepositoryMock
-            .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(eventEntity);
+            _cacheServiceMock
+                .Setup(c => c.GetAsync<IReadOnlyCollection<EventDto>>(CacheKeys.Top10Events(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cachedEvents);
 
-        _eventRepositoryMock
-            .Setup(x => x.Delete(eventEntity))
-            .Verifiable();
+            var service = CreateEventService();
+            var result = await service.GetTopEvents(CancellationToken.None);
 
-        // Act
-        await _eventService.DeleteEvent(eventId, CancellationToken.None);
+            result.Should().BeEquivalentTo(cachedEvents);
+            _eventRepositoryMock.Verify(r => r.GetTopEvents(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+            _cacheServiceMock.Verify(c => c.SetAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
 
-        // Assert
-        _eventRepositoryMock.Verify(x => x.GetById(eventId), Times.Once);
-        _eventRepositoryMock.Verify(x => x.Delete(eventEntity), Times.Once);
-    }
+        // ============================================================
+        // GetTopEvents — cache miss scenarios
+        // ============================================================
 
-    // фильтрация по названию
-    [Fact]
-    public async Task GetEvents_ShouldReturnsFilteredEvents()
-    {
-        // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
+        [Fact]
+        public async Task GetTopEvents_CacheMiss_FetchesFromRepositoryAndSavesToCache()
         {
-            Id = Guid.NewGuid(),
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        }).ToList();
+            var events = new List<Event> { CreateEventEntity(), CreateEventEntity() };
 
-        _eventRepositoryMock
-            .Setup(x => x.GetByFilter("Test Event 2", null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(events.Where(e => e.Title == "Test Event 2").ToList());
+            _cacheServiceMock
+                .Setup(c => c.GetAsync<IReadOnlyCollection<EventDto>>(CacheKeys.Top10Events(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyCollection<EventDto>?)null);
 
-        // Act
-        var searchQuery = new SearchEventsQuery
+            _eventRepositoryMock
+                .Setup(r => r.GetTopEvents(10, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(events);
+
+            var service = CreateEventService();
+            var result = await service.GetTopEvents(CancellationToken.None);
+
+            result.Should().HaveCount(2);
+            _eventRepositoryMock.Verify(r => r.GetTopEvents(10, It.IsAny<CancellationToken>()), Times.Once);
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(
+                    CacheKeys.Top10Events(),
+                    It.IsAny<IReadOnlyCollection<EventDto>>(),
+                    TimeSpan.FromMinutes(_cacheTtlOptions.Top10EventsMinutes),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        // ============================================================
+        // CreateEvent — mutating operation
+        // ============================================================
+
+        [Fact]
+        public async Task CreateEvent_WithValidData_AddsToRepositoryAndReturnsDto()
         {
-            Title = "Test Event 2",
-            From = null,
-            To = null,
-            Page = 1,
-            PageSize = 10
-        };
+            var query = new EventForCreationQuery
+            {
+                Title = "New Event",
+                Description = "New Description",
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(1).AddHours(3),
+                TotalSeats = 50
+            };
 
-        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
+            _eventRepositoryMock
+                .Setup(r => r.Add(It.IsAny<Event>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(1);
-        result.TotalItems.Should().Be(1);
-        result.Items.First().Title.Should().Be(searchQuery.Title);
-    }
+            _eventRepositoryMock
+                .Setup(r => r.SaveChanges(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
 
-    // фильтрация по датам (startDate, endDate)
-    [Fact]
-    public async Task GetEvents_ShouldReturnsFilteredEventsByDates()
-    {
-        // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
+            var service = CreateEventService();
+            var result = await service.CreateEvent(query, CancellationToken.None);
+
+            result.Title.Should().Be(query.Title);
+            result.Description.Should().Be(query.Description);
+            result.StartAt.Should().Be(query.StartAt);
+            result.EndAt.Should().Be(query.EndAt);
+            result.TotalSeats.Should().Be(query.TotalSeats);
+            result.AvailableSeats.Should().Be(query.TotalSeats);
+
+            _eventRepositoryMock.Verify(r => r.Add(It.Is<Event>(e =>
+                e.Title == query.Title &&
+                e.TotalSeats == query.TotalSeats &&
+                e.AvailableSeats == query.TotalSeats
+            ), It.IsAny<CancellationToken>()), Times.Once);
+
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateEvent_WithEmptyTitle_ThrowsBadRequestException()
         {
-            Id = Guid.NewGuid(),
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        }).ToList();
+            var query = new EventForCreationQuery
+            {
+                Title = "",
+                Description = "Description",
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(1).AddHours(3),
+                TotalSeats = 50
+            };
 
-        var event1 = _eventsForCreation.First();
+            var service = CreateEventService();
+            var act = () => service.CreateEvent(query, CancellationToken.None);
 
-        _eventRepositoryMock
-            .Setup(x => x.GetByFilter(null, event1.StartAt, event1.EndAt, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(events.Take(1).ToList());
+            await act.Should().ThrowAsync<BadRequestException>();
 
-        // Act
-        var searchQuery = new SearchEventsQuery
+            _eventRepositoryMock.Verify(r => r.Add(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Never);
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateEvent_WithStartDateAfterEndDate_ThrowsBadRequestException()
         {
-            // Title = null,
-            From = event1.StartAt,
-            To = event1.EndAt,
-            Page = 1,
-            PageSize = 10
-        };
+            var query = new EventForCreationQuery
+            {
+                Title = "Event",
+                Description = "Description",
+                StartAt = DateTime.UtcNow.AddDays(2),
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 50
+            };
 
-        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
+            var service = CreateEventService();
+            var act = () => service.CreateEvent(query, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(1);
-        result.TotalItems.Should().Be(1);
-        result.Items.First().Title.Should().Be(event1.Title);
-        result.Items.First().StartAt.Should().Be(event1.StartAt);
-        result.Items.First().EndAt.Should().Be(event1.EndAt);
-    }
+            await act.Should().ThrowAsync<BadRequestException>();
 
-    // пагинация событий
-    [Theory]
-    [InlineData(1, 10, 4)]
-    [InlineData(2, 10, 0)]
-    [InlineData(1, 1, 1)]
-    [InlineData(2, 1, 1)]
-    [InlineData(5, 1, 0)]
-    public async Task GetEvents_ShouldReturnsPaginatedResult(int page, int pageSize, int expectedCount)
-    {
-        // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
+            _eventRepositoryMock.Verify(r => r.Add(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Never);
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        // ============================================================
+        // UpdateEvent — mutating operation: updates cache
+        // ============================================================
+
+        [Fact]
+        public async Task UpdateEvent_WithValidData_UpdatesRepositoryAndUpdatesCache()
         {
-            Id = Guid.NewGuid(),
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        }).ToList();
+            var eventId = Guid.NewGuid();
+            var existingEvent = CreateEventEntity(eventId);
 
-        _eventRepositoryMock
-            .Setup(x => x.GetByFilter(null, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(events);
+            var query = new EventForUpdateQuery
+            {
+                Title = "Updated Title",
+                Description = "Updated Description",
+                StartAt = DateTime.UtcNow.AddDays(5),
+                EndAt = DateTime.UtcNow.AddDays(5).AddHours(4)
+            };
 
-        // Act
-        var searchQuery = new SearchEventsQuery
+            _eventRepositoryMock
+                .Setup(r => r.GetById(eventId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(existingEvent);
+
+            _eventRepositoryMock
+                .Setup(r => r.SaveChanges(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
+
+            var service = CreateEventService();
+            var result = await service.UpdateEvent(eventId, query, CancellationToken.None);
+
+            result.Id.Should().Be(eventId);
+            result.Title.Should().Be(query.Title);
+            result.Description.Should().Be(query.Description);
+            result.StartAt.Should().Be(query.StartAt);
+            result.EndAt.Should().Be(query.EndAt);
+
+            _eventRepositoryMock.Verify(r => r.GetById(eventId, It.IsAny<CancellationToken>()), Times.Once);
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Once);
+
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(
+                    CacheKeys.Event(eventId),
+                    It.Is<EventDto>(dto => dto.Id == eventId && dto.Title == query.Title),
+                    TimeSpan.FromMinutes(_cacheTtlOptions.EventMinutes),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateEvent_WithStartDateAfterEndDate_ThrowsBadRequestException()
         {
-            Page = page,
-            PageSize = pageSize
-        };
+            var query = new EventForUpdateQuery
+            {
+                Title = "Event",
+                Description = "Description",
+                StartAt = DateTime.UtcNow.AddDays(2),
+                EndAt = DateTime.UtcNow.AddDays(1)
+            };
 
-        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
+            var service = CreateEventService();
+            var act = () => service.UpdateEvent(Guid.NewGuid(), query, CancellationToken.None);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(expectedCount);
-        result.TotalItems.Should().Be(_eventsForCreation.Count);
-        result.Page.Should().Be(searchQuery.Page);
-        result.PageSize.Should().Be(searchQuery.PageSize);
-    }
+            await act.Should().ThrowAsync<BadRequestException>();
 
-    // комбинированная фильтрация
-    [Fact]
-    public async Task GetEvents_ShouldReturnsFilteredAndPaginatedResult()
-    {
-        // Arrange
-        var events = _eventsForCreation.Select((e, _) => new Domain.Entities.Event
+            _eventRepositoryMock.Verify(r => r.GetById(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateEvent_WhenEventNotFound_ThrowsNotFoundException()
         {
-            Id = Guid.NewGuid(),
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        }).ToList();
+            var eventId = Guid.NewGuid();
+            var query = new EventForUpdateQuery
+            {
+                Title = "Updated Title",
+                Description = "Updated Description",
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(1).AddHours(2)
+            };
 
-        var element1 = _eventsForCreation.First();
-        var element2 = _eventsForCreation.Skip(1).First();
+            _eventRepositoryMock
+                .Setup(r => r.GetById(eventId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Event?)null);
 
-        _eventRepositoryMock
-            .Setup(x => x.GetByFilter("Test", element1.StartAt, element2.EndAt, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(events.Where(e => e.Title.Contains("Test") && e.StartAt >= element1.StartAt && e.EndAt <= element2.EndAt).ToList());
+            var service = CreateEventService();
+            var act = () => service.UpdateEvent(eventId, query, CancellationToken.None);
 
-        // Act
-        var searchQuery = new SearchEventsQuery
+            await act.Should().ThrowAsync<NotFoundException>();
+
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Never);
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(It.IsAny<string>(), It.IsAny<EventDto>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        // ============================================================
+        // DeleteEvent — mutating operation: removes from cache
+        // ============================================================
+
+        [Fact]
+        public async Task DeleteEvent_WhenEventExists_RemovesFromRepositoryAndInvalidatesCache()
         {
-            Title = "Test",
-            From = element1.StartAt,
-            To = element2.EndAt,
-            Page = 1,
-            PageSize = int.MaxValue
-        };
+            var eventId = Guid.NewGuid();
+            var existingEvent = CreateEventEntity(eventId);
 
-        var result = await _eventService.GetEvents(searchQuery, CancellationToken.None);
+            _eventRepositoryMock
+                .Setup(r => r.GetById(eventId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(existingEvent);
 
-        // Assert
-        result.Should().NotBeNull();
-        result.Items.Should().HaveCount(2);
-        result.TotalItems.Should().Be(2);
-    }
+            _eventRepositoryMock
+                .Setup(r => r.SaveChanges(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1);
 
-    // попытка получить событие с несуществующим ID
-    [Fact]
-    public async Task GetEvent_ShouldThrowNotFoundException()
-    {
-        var exception = () => _eventService.GetEvent(Guid.NewGuid());
+            var service = CreateEventService();
+            await service.DeleteEvent(eventId, CancellationToken.None);
 
-        await exception.Should().ThrowAsync<NotFoundException>();
-    }
+            _eventRepositoryMock.Verify(r => r.GetById(eventId, It.IsAny<CancellationToken>()), Times.Once);
+            _eventRepositoryMock.Verify(r => r.Delete(existingEvent, It.IsAny<CancellationToken>()), Times.Once);
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Once);
 
-    // попытка обновить событие с несуществующим ID
-    [Fact]
-    public async Task UpdateEvent_ShouldThrowNotFoundException()
-    {
-        // Arrange
-        var eventId = Guid.NewGuid();
-        var newDto = new EventForUpdateQuery
+            _cacheServiceMock.Verify(
+                c => c.RemoveAsync(CacheKeys.Event(eventId), It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteEvent_WhenEventNotFound_ThrowsNotFoundException()
         {
-            Title = "Test",
-            Description = "Test description",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(1)
-        };
+            var eventId = Guid.NewGuid();
 
-        _eventRepositoryMock
-            .Setup(x => x.GetById(eventId))
-            .ReturnsAsync((Domain.Entities.Event?)null);
+            _eventRepositoryMock
+                .Setup(r => r.GetById(eventId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Event?)null);
 
-        // Act
-        var exception = () => _eventService.UpdateEvent(eventId, newDto);
+            var service = CreateEventService();
+            var act = () => service.DeleteEvent(eventId, CancellationToken.None);
 
-        // Assert
-        await exception.Should().ThrowAsync<NotFoundException>();
-    }
+            await act.Should().ThrowAsync<NotFoundException>();
 
-    // создание события с некорректными данными (если валидация в сервисе)
-    [Fact]
-    public async Task CreateEvent_EmptyTitle_ShouldThrowBadRequestException()
-    {
-        var newDto = new EventForCreationQuery
-        {
-            Title = null!,
-            Description = null,
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(1)
-        };
-
-        var exception = () => _eventService.CreateEvent(newDto);
-
-        await exception.Should().ThrowAsync<BadRequestException>();
-    }
-
-    // обновление события с некорректными датами (EndAt раньше StartAt)
-    [Fact]
-    public async Task UpdateEvent_EndAtBeforeStartAt_ShouldThrowBadRequestException()
-    {
-        // Arrange
-        var eventId = Guid.NewGuid();
-        var eventForCreation = _eventsForCreation[0];
-    
-        var eventEntity = new Domain.Entities.Event
-        {
-            Id = eventId,
-            Title = eventForCreation.Title,
-            Description = eventForCreation.Description,
-            StartAt = eventForCreation.StartAt,
-            EndAt = eventForCreation.EndAt,
-            TotalSeats = 10,
-            AvailableSeats = 10
-        };
-
-        _eventRepositoryMock
-            .Setup(x => x.GetById(eventId))
-            .ReturnsAsync(eventEntity);
-
-        var newEvent = new EventForUpdateQuery()
-        {
-            Title = "Test",
-            Description = "Test",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddDays(-1)
-        };
-
-        // Act
-        var exception = () => _eventService.UpdateEvent(eventId, newEvent);
-
-        // Assert
-        await exception.Should().ThrowAsync<BadRequestException>();
+            _eventRepositoryMock.Verify(r => r.Delete(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Never);
+            _eventRepositoryMock.Verify(r => r.SaveChanges(It.IsAny<CancellationToken>()), Times.Never);
+            _cacheServiceMock.Verify(
+                c => c.RemoveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
     }
 }

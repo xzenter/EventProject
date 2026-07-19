@@ -89,8 +89,8 @@ public class BookingRepositoryTests
         Assert.NotNull(result);
         Assert.Equal(booking.Id, result.Id);
         Assert.Equal(eventId, result.EventId);
-        Assert.Equal(BookingStatus.Confirmed, result.Status);
-        Assert.NotNull(result.ProcessedAt);
+        Assert.Equal(BookingStatus.Pending, result.Status);
+        Assert.Null(result.ProcessedAt);
     }
 
     [Fact]
