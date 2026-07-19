@@ -1,14 +1,14 @@
-﻿using EventProject.Application.Abstractions.Repositories;
-using EventProject.Application.Abstractions.Services;
-using EventProject.Application.Auth;
-using EventProject.Application.Auth.DTOs;
-using EventProject.Domain.Entities;
-using EventProject.Domain.Enums;
-using EventProject.Domain.Exceptions;
+﻿using EventProject.Users.Application.Abstractions.Repositories;
+using EventProject.Users.Application.Abstractions.Services;
+using EventProject.Users.Application.Auth;
+using EventProject.Users.Application.Auth.DTOs;
+using EventProject.Users.Domain.Entities;
+using EventProject.Users.Domain.Enums;
+using EventProject.Users.Domain.Exceptions;
 using FluentAssertions;
 using Moq;
 
-namespace EventProject.Application.Tests;
+namespace EventProject.Users.Application.Tests;
 
 public class AuthServiceTests
 {

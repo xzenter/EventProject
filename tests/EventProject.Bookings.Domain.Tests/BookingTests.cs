@@ -1,7 +1,7 @@
-using EventProject.Domain.Entities;
-using EventProject.Domain.Enums;
+using EventProject.Bookings.Domain.Entities;
+using EventProject.Bookings.Domain.Enums;
 
-namespace EventProject.Domain.Tests;
+namespace EventProject.Bookings.Domain.Tests;
 
 public class BookingTests
 {
@@ -18,7 +18,6 @@ public class BookingTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null!
         };
 
         // Act
@@ -42,7 +41,6 @@ public class BookingTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null!
         };
 
         // Act
@@ -66,7 +64,6 @@ public class BookingTests
             CreatedAt = DateTime.UtcNow,
             Status = BookingStatus.Pending,
             ProcessedAt = null,
-            Event = null!
         };
 
         // Act

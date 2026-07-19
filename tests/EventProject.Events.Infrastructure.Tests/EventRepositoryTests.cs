@@ -1,9 +1,9 @@
-using EventProject.Domain.Entities;
-using EventProject.Infrastructure.Repositories;
-using EventProject.Infrastructure.Tests.Base;
+using EventProject.Events.Domain.Entities;
+using EventProject.Events.Infrastructure.Repositories;
+using EventProject.Events.Tests.Base;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventProject.Infrastructure.Tests;
+namespace EventProject.Events.Tests;
 
 [Collection("Database collection")]
 public class EventRepositoryTests
@@ -19,7 +19,7 @@ public class EventRepositoryTests
     {
         await using var context = _fixture.CreateContext();
         await context.Database.ExecuteSqlRawAsync(
-            "TRUNCATE TABLE bookings, events, users RESTART IDENTITY CASCADE");
+            "TRUNCATE TABLE events RESTART IDENTITY CASCADE");
     }
 
     [Fact]

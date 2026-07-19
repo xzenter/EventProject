@@ -1,11 +1,11 @@
-﻿using EventProject.Application.Abstractions.Repositories;
-using EventProject.Application.Events;
-using EventProject.Application.Events.DTOs;
-using EventProject.Domain.Exceptions;
+﻿using EventProject.Events.Application.Abstractions.Repositories;
+using EventProject.Events.Application.Events;
+using EventProject.Events.Application.Events.DTOs;
+using EventProject.Events.Domain.Exceptions;
 using FluentAssertions;
 using Moq;
 
-namespace EventProject.Application.Tests;
+namespace EventProject.Events.Application.Tests;
 
 public class EventServiceTests
 {

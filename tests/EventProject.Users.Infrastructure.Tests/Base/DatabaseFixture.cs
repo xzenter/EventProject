@@ -1,8 +1,8 @@
-﻿using EventProject.Infrastructure.DataAccess;
+﻿using EventProject.Users.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
-namespace EventProject.Infrastructure.Tests.Base;
+namespace EventProject.Users.Tests.Base;
 
 public class DatabaseFixture : IAsyncLifetime
 {

@@ -1,33 +1,28 @@
-﻿using EventProject.Application.Abstractions.Repositories;
-using EventProject.Application.Booking;
-using EventProject.Application.Booking.DTOs;
-using EventProject.Domain.Entities;
-using EventProject.Domain.Enums;
-using EventProject.Domain.Exceptions;
+﻿using EventProject.Bookings.Application.Abstractions.Repositories;
+using EventProject.Bookings.Application.Booking;
+using EventProject.Bookings.Application.Booking.DTOs;
+using EventProject.Bookings.Domain.Enums;
+using EventProject.Bookings.Domain.Exceptions;
 using FluentAssertions;
-using Microsoft.Extensions.Options;
 using Moq;
 
-namespace EventProject.Application.Tests;
+namespace EventProject.Bookings.Application.Tests;
 
 public class BookingServiceTests
 {
     private readonly BookingService _bookingService;
     private readonly Mock<IBookingRepository> _bookingRepositoryMock;
-    private readonly Mock<IEventRepository> _eventRepositoryMock;
 
     public BookingServiceTests()
     {
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
 
         _bookingRepositoryMock = new Mock<IBookingRepository>();
-        _eventRepositoryMock = new Mock<IEventRepository>();
         _bookingService = new BookingService(
             _bookingRepositoryMock.Object,
-            _eventRepositoryMock.Object,
             bookingSettings
         );
     }
@@ -391,7 +386,7 @@ public class BookingServiceTests
 
         // Assert
         Assert.Equal(BookingStatus.Confirmed, booking.Status);
-        Assert.NotNull(booking.ProcessedAt);
+        Assert.NotNull((object?)booking.ProcessedAt);
     }
 
     /// <summary>
@@ -417,7 +412,7 @@ public class BookingServiceTests
 
         // Assert
         Assert.Equal(BookingStatus.Rejected, booking.Status);
-        Assert.NotNull(booking.ProcessedAt);
+        Assert.NotNull((object?)booking.ProcessedAt);
     }
 
     /// <summary>
@@ -450,7 +445,7 @@ public class BookingServiceTests
             .Setup(b => b.GetById(It.IsAny<Guid>()))
             .ReturnsAsync((Domain.Entities.Booking?)null);
         
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -560,7 +555,7 @@ public class BookingServiceTests
             .Setup(r => r.GetById(eventId))
             .ReturnsAsync(fakeEvent);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -621,7 +616,7 @@ public class BookingServiceTests
             .Setup(r => r.GetById(eventId))
             .ReturnsAsync(fakeEvent);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -682,7 +677,7 @@ public class BookingServiceTests
             .Setup(r => r.GetById(eventId))
             .ReturnsAsync(fakeEvent);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -736,7 +731,7 @@ public class BookingServiceTests
             .Setup(r => r.GetActiveBookingsCount(secondUserId))
             .ReturnsAsync(0);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -785,7 +780,7 @@ public class BookingServiceTests
             .Setup(r => r.GetById(eventId))
             .ReturnsAsync(fakeEvent);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -831,7 +826,7 @@ public class BookingServiceTests
         _bookingRepositoryMock.Setup(r => r.GetActiveBookingsCount(userId))
             .ReturnsAsync(10);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -889,7 +884,7 @@ public class BookingServiceTests
             .Setup(r => r.GetById(eventId))
             .ReturnsAsync(fakeEvent);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });
@@ -949,7 +944,7 @@ public class BookingServiceTests
             .Setup(r => r.GetById(eventId))
             .ReturnsAsync(fakeEvent);
 
-        var bookingSettings = Options.Create(new BookingSettings
+        var bookingSettings = Microsoft.Extensions.Options.Options.Create(new BookingSettings
         {
             MaxActiveBookings = 10
         });

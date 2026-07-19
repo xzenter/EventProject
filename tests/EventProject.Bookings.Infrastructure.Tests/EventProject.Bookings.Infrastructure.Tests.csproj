@@ -10,11 +10,8 @@
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.4"/>
         <PackageReference Include="FluentAssertions" Version="8.10.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.8" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
-        <PackageReference Include="Testcontainers.PostgreSql" Version="4.12.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.13.0" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,11 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Example.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\EventProject.Infrastructure\EventProject.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\src\EventProject.Bookings.Application\EventProject.Bookings.Application.csproj" />
+      <ProjectReference Include="..\..\src\EventProject.Bookings.Infrastructure\EventProject.Bookings.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>
