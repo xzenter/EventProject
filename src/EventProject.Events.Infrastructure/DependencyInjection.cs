@@ -1,7 +1,9 @@
 using System.Text;
 using EventProject.Events.Application.Abstractions.Repositories;
+using EventProject.Events.Application.Abstractions.Services;
 using EventProject.Events.Infrastructure.Auth;
 using EventProject.Events.Infrastructure.BackgroundServices;
+using EventProject.Events.Infrastructure.CachingService;
 using EventProject.Events.Infrastructure.DataAccess;
 using EventProject.Events.Infrastructure.Options;
 using EventProject.Events.Infrastructure.Repositories;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 namespace EventProject.Events.Infrastructure;
 
@@ -67,8 +70,29 @@ public static class DependencyInjection
         // Получаем опции Kafka из конфигурации
         services.Configure<KafkaOptions>(configuration.GetSection("Kafka"));
 
-
         services.AddHostedService<ConsumerWorker>();
+        
+        // Redis
+        services.Configure<RedisOptions>(configuration.GetSection("Redis"));
+
+        var redisOptions = configuration
+            .GetSection("Redis")
+            .Get<RedisOptions>()!;
+
+        var options = new ConfigurationOptions
+        {
+            Password = redisOptions.Password,
+            ConnectTimeout = redisOptions.ConnectTimeout,
+            SyncTimeout = redisOptions.SyncTimeout,
+            AbortOnConnectFail = redisOptions.AbortOnConnectFail,
+            ConnectRetry = redisOptions.ConnectRetry
+        };
+
+        options.EndPoints.Add(redisOptions.RedisServers);
+
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(options));
+        
+        services.AddScoped<ICacheService, RedisCacheService>();
     }
 
     public static void DbMigrate(this IServiceProvider serviceProvider)

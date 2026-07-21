@@ -1,4 +1,5 @@
 using EventProject.Events.Application.Abstractions.Services;
+using EventProject.Events.Application.Caching;
 using EventProject.Events.Application.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,5 +12,6 @@ public static class DependencyInjection
     {
         services.AddScoped<IEventService, EventService>();
 
+        services.Configure<CacheTtlOptions>(configuration.GetSection("Redis:Ttl"));
     }
 }

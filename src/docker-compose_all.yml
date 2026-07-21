@@ -27,6 +27,23 @@ services:
       retries: 10
       start_period: 30s
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: eventapi-redis    
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    # Включаем AOF (Append Only File),
+    # чтобы данные сохранялись на диск
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   users-db:
     image: postgres:16-alpine
     container_name: eventapi-users-db
@@ -148,6 +165,7 @@ networks:
 
 volumes:
   kafka_data:
+  redis-data:
   users_pgdata:
   events_pgdata:
   bookings_pgdata:

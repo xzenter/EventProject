@@ -1,4 +1,4 @@
-﻿using EventProject.Users.Application.Users.DTOs;
+﻿using EventProject.Users.Application.Auth.DTOs;
 
 namespace EventProject.Users.Application.Abstractions.Services;
 

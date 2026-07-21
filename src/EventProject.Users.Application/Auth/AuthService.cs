@@ -1,6 +1,6 @@
 ﻿using EventProject.Users.Application.Abstractions.Repositories;
 using EventProject.Users.Application.Abstractions.Services;
-using EventProject.Users.Application.Users.DTOs;
+using EventProject.Users.Application.Auth.DTOs;
 using EventProject.Users.Domain.Entities;
 using EventProject.Users.Domain.Exceptions;
 

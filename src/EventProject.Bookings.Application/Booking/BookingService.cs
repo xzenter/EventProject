@@ -28,22 +28,11 @@ public class BookingService : IBookingService
 
         try
         {
-            /*var existingEvent = await _eventRepository.GetById(eventId, ct);
-
-            if (existingEvent == null)
-                throw new NotFoundException($"Событие по идентификатору {eventId} не найдено");
-
-            if (existingEvent.StartAt <= DateTime.UtcNow)
-                throw new EventAlreadyStartedException("Невозможно забронировать начавшееся или оконченное событие");
-            
-            if (!existingEvent.TryReserveSeats())
-                throw new NoAvailableSeatsException("Недостаточно свободных мест");
-
             var activeBookingsCount = await _bookingRepository.GetActiveBookingsCount(userId, ct);
 
             if (activeBookingsCount >= _bookingSettings.MaxActiveBookings)
                 throw new ActiveBookingLimitExceededException($"Пользователь не может иметь более " +
-                                                              $"{_bookingSettings.MaxActiveBookings} активных броней.");*/
+                                                              $"{_bookingSettings.MaxActiveBookings} активных броней.");
 
             var booking = new Domain.Entities.Booking
             {
@@ -98,7 +87,7 @@ public class BookingService : IBookingService
 
     public async Task CancelBooking(Guid bookingId, Guid userId, Role role, CancellationToken ct)
     {
-        /*var booking = await _bookingRepository.GetById(bookingId, ct);
+        var booking = await _bookingRepository.GetById(bookingId, ct);
 
         if (booking is null)
             throw new NotFoundException($"Бронирование по идентификатору {bookingId} не найдено");
@@ -109,17 +98,8 @@ public class BookingService : IBookingService
         if (booking.Status is BookingStatus.Cancelled)
             throw new BadRequestException("Бронь уже отменена");
 
-        var @event = await _eventRepository.GetById(booking.EventId, ct);
-
-        if (@event is null)
-            throw new NotFoundException($"Событие по идентификатору {booking.EventId} не найдено");
-
-        if (role != Role.Admin && @event.StartAt <= DateTime.UtcNow)
-            throw new EventAlreadyStartedException("Невозможно отменить бронь для завершенного события");
-
         booking.Cancel(DateTime.UtcNow);
-        @event.ReleaseSeats();
 
-        await _bookingRepository.SaveChanges(ct);*/
+        await _bookingRepository.SaveChanges(ct);
     }
 }

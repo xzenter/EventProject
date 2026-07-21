@@ -19,12 +19,6 @@
     <Project Path="src/EventProject.Events.Infrastructure/EventProject.Events.Infrastructure.csproj" />
     <Project Path="src/EventProject.Events.Presentation/EventProject.Events.Presentation.csproj" />
   </Folder>
-  <Folder Name="/src/Monolith/">
-    <Project Path="src/EventProject.Application/EventProject.Application.csproj" />
-    <Project Path="src/EventProject.Domain/EventProject.Domain.csproj" />
-    <Project Path="src/EventProject.Infrastructure/EventProject.Infrastructure.csproj" />
-    <Project Path="src/EventProject.Presentation/EventProject.Presentation.csproj" />
-  </Folder>
     <Folder Name="/src/Users/">
         <Project Path="src/EventProject.Users.Application/EventProject.Users.Application.csproj" />
         <Project Path="src/EventProject.Users.Domain/EventProject.Users.Domain.csproj" />
@@ -32,8 +26,12 @@
         <Project Path="src/EventProject.Users.Presentation/EventProject.Users.Presentation.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/EventProject.Application.Tests/EventProject.Application.Tests.csproj" Id="11eeb38d-8755-46cb-9cbc-3acc11e7e76a" />
-    <Project Path="tests/EventProject.Domain.Tests/EventProject.Domain.Tests.csproj" />
-    <Project Path="tests/EventProject.Infrastructure.Tests/EventProject.Infrastructure.Tests.csproj" />
+    <Project Path="tests/EventProject.Bookings.Application.Tests/EventProject.Bookings.Application.Tests.csproj" />
+    <Project Path="tests/EventProject.Bookings.Domain.Tests/EventProject.Bookings.Domain.Tests.csproj" />
+    <Project Path="tests/EventProject.Bookings.Infrastructure.Tests/EventProject.Bookings.Infrastructure.Tests.csproj" />
+    <Project Path="tests/EventProject.Events.Application.Tests/EventProject.Events.Application.Tests.csproj" />
+    <Project Path="tests/EventProject.Events.Infrastructure.Tests/EventProject.Events.Infrastructure.Tests.csproj" />
+    <Project Path="tests/EventProject.Users.Application.Tests/EventProject.Users.Application.Tests.csproj" />
+    <Project Path="tests/EventProject.Users.Infrastructure.Tests/EventProject.Users.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>
