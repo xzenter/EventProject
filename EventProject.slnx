@@ -6,6 +6,11 @@
       <File Path="src/docker-compose_all.yml" />
     <File Path="src/prometheus.yml" />
   </Folder>
+  <Folder Name="/SolutionFolder/Grafana/">
+    <File Path="src/grafana/provisioning/dashboards/dashboard.yml" />
+    <File Path="src/grafana/provisioning/dashboards/Dashboard_1-1784792937353.json" />
+    <File Path="src/grafana/provisioning/datasources/prometheus.yml" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/EventProject.Shared/EventProject.Shared.csproj" />
   </Folder>
