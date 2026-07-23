@@ -2,7 +2,9 @@
   <Folder Name="/SolutionFolder/">
     <File Path=".gitignore" />
     <File Path="README.md" />
+    <File Path="src/Dashboard_1-1784792937353.json" />
       <File Path="src/docker-compose_all.yml" />
+    <File Path="src/prometheus.yml" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/EventProject.Shared/EventProject.Shared.csproj" />

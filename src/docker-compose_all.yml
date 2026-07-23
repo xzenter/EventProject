@@ -38,11 +38,51 @@ services:
     # Включаем AOF (Append Only File),
     # чтобы данные сохранялись на диск
     command: redis-server --appendonly yes
+    networks:
+      - eventapi-network
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 10
+      
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: eventapi-prometheus    
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - eventapi-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    container_name: eventapi-jaeger
+    ports:
+      - "16686:16686"   # UI
+      - "4317:4317"     # OTLP gRPC
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - eventapi-network
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: eventapi-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+      - jaeger
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - eventapi-network
 
   users-db:
     image: postgres:16-alpine
@@ -116,6 +156,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://jaeger:4317
     ports:
       - "5000:8080"
     networks:
@@ -135,6 +176,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://jaeger:4317
     ports:
       - "5001:8080"
     networks:
@@ -154,6 +196,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://+:8080
+      Otlp__Endpoint: http://jaeger:4317
     ports:
       - "5002:8080"
     networks:
@@ -166,6 +209,7 @@ networks:
 volumes:
   kafka_data:
   redis-data:
+  grafana-data:
   users_pgdata:
   events_pgdata:
   bookings_pgdata:
