@@ -5,8 +5,17 @@ using EventProject.Users.Infrastructure;
 using EventProject.Users.Presentation.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, cfg) =>
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+        .WriteTo.Console(new CompactJsonFormatter()));
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
@@ -18,6 +27,29 @@ builder.Services
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation(options =>
+        {
+            // Исключаем системные запросы из трейсинга
+            options.Filter = httpContext =>
+            {
+                var path = httpContext.Request.Path;
+
+                // Если запрос идёт на /health или /metrics, спан НЕ создаётся
+                return !path.StartsWithSegments("/health") && !path.StartsWithSegments("/metrics");
+            };
+        })
+        .AddHttpClientInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation()
+        .AddOtlpExporter(o => o.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]!)))
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddPrometheusExporter())
+    .ConfigureResource(r => r
+        .AddService(serviceName: "users-service"));
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc(
@@ -25,7 +57,7 @@ builder.Services.AddSwaggerGen(options =>
         new OpenApiInfo
         {
             Title = "Учебный проект \"Event Project\"",
-            Description = "Sprint-9"
+            Description = "Sprint-11"
         });
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -77,5 +109,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();
