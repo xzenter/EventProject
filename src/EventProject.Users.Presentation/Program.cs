@@ -29,7 +29,17 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing
-        .AddAspNetCoreInstrumentation()
+        .AddAspNetCoreInstrumentation(options =>
+        {
+            // Исключаем системные запросы из трейсинга
+            options.Filter = httpContext =>
+            {
+                var path = httpContext.Request.Path;
+
+                // Если запрос идёт на /health или /metrics, спан НЕ создаётся
+                return !path.StartsWithSegments("/health") && !path.StartsWithSegments("/metrics");
+            };
+        })
         .AddHttpClientInstrumentation()
         .AddEntityFrameworkCoreInstrumentation()
         .AddOtlpExporter(o => o.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]!)))
